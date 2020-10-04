@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/InitFragment">
+
+    <fragment
+        android:id="@+id/InitFragment"
+        android:name="me.trevi.gmapsparser.InitFragment"
+        android:label="@string/init_fragment_label"
+        tools:layout="@layout/fragment_init">
+
+        <action
+            android:id="@+id/action_Init_to_Navigation_fragment"
+            app:destination="@id/NavigationFragment" />
+    </fragment>
+    <fragment
+        android:id="@+id/NavigationFragment"
+        android:name="me.trevi.gmapsparser.NavigationFragment"
+        android:label="@string/navigation_fragment_label"
+        tools:layout="@layout/fragment_navigation">
+
+        <action
+            android:id="@+id/action_Navigation_to_Init_fragment"
+            app:destination="@id/InitFragment" />
+    </fragment>
+</navigation>
