@@ -43,7 +43,7 @@
                 android:background="#428A45"
                 android:minWidth="100sp"
                 android:minHeight="100sp"
-                android:src="@drawable/ic_launcher_foreground"
+                android:src="@android:drawable/stat_notify_error"
                 android:visibility="visible" />
 
             <androidx.constraintlayout.widget.ConstraintLayout

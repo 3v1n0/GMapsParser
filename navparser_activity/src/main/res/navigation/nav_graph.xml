@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/InitFragment"
-        android:name="me.trevi.gmapsparser.InitFragment"
+        android:name="me.trevi.navparser_activity.InitFragment"
         android:label="@string/init_fragment_label"
         tools:layout="@layout/fragment_init">
 
@@ -17,7 +17,7 @@
     </fragment>
     <fragment
         android:id="@+id/NavigationFragment"
-        android:name="me.trevi.gmapsparser.NavigationFragment"
+        android:name="me.trevi.navparser_activity.NavigationFragment"
         android:label="@string/navigation_fragment_label"
         tools:layout="@layout/fragment_navigation">
 

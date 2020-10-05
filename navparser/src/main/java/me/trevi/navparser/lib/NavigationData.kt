@@ -5,7 +5,7 @@
  * Copyright (c) 2020 Marco Trevisan <marco.trevisan@canonical.com>
  */
 
-package me.trevi.gmapsparser.lib
+package me.trevi.navparser.lib
 
 import android.content.Context
 import android.content.res.Configuration

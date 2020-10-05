@@ -5,16 +5,16 @@
  * Copyright (c) 2020 Marco Trevisan <marco.trevisan@canonical.com>
  */
 
-package me.trevi.gmapsparser.service
+package me.trevi.navparser.service
 
 import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import android.util.Log
 import kotlinx.coroutines.*
-import me.trevi.gmapsparser.lib.GMAPS_PACKAGE
-import me.trevi.gmapsparser.lib.GMapsNotification
-import me.trevi.gmapsparser.lib.NavigationNotification
+import me.trevi.navparser.lib.GMAPS_PACKAGE
+import me.trevi.navparser.lib.GMapsNotification
+import me.trevi.navparser.lib.NavigationNotification
 
 private const val NOTIFICATIONS_THRESHOLD : Long = 500 // Ignore notifications coming earlier, in ms
 

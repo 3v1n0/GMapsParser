@@ -1,2 +1,4 @@
+include ':navparser_activity'
+include ':navparser'
 include ':app'
 rootProject.name = "GMaps Parser"

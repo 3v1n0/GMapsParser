@@ -5,20 +5,20 @@
  * Copyright (c) 2020 Marco Trevisan <marco.trevisan@canonical.com>
  */
 
-package me.trevi.gmapsparser.service
+package me.trevi.navparser.service
 
 import android.app.PendingIntent
 import android.content.Intent
 import android.util.Log
-import me.trevi.gmapsparser.BuildConfig
-import me.trevi.gmapsparser.lib.NavigationNotification
+import me.trevi.navparser.BuildConfig
+import me.trevi.navparser.lib.NavigationNotification
 
-const val SET_INTENT = "${BuildConfig.APPLICATION_ID}.SET_INTENT"
-const val INTENT_SET = "${BuildConfig.APPLICATION_ID}.INTENT_SET"
-const val STOP_NAVIGATION = "${BuildConfig.APPLICATION_ID}.STOP_NAVIGATION"
-const val NAVIGATION_DATA_UPDATED = "${BuildConfig.APPLICATION_ID}.NAVIGATION_DATA_UPDATED"
-const val NAVIGATION_STARTED = "${BuildConfig.APPLICATION_ID}.NAVIGATION_STARTED"
-const val NAVIGATION_STOPPED = "${BuildConfig.APPLICATION_ID}.NAVIGATION_STOPPED"
+const val SET_INTENT = "${BuildConfig.LIBRARY_PACKAGE_NAME}.SET_INTENT"
+const val INTENT_SET = "${BuildConfig.LIBRARY_PACKAGE_NAME}.INTENT_SET"
+const val STOP_NAVIGATION = "${BuildConfig.LIBRARY_PACKAGE_NAME}.STOP_NAVIGATION"
+const val NAVIGATION_DATA_UPDATED = "${BuildConfig.LIBRARY_PACKAGE_NAME}.NAVIGATION_DATA_UPDATED"
+const val NAVIGATION_STARTED = "${BuildConfig.LIBRARY_PACKAGE_NAME}.NAVIGATION_STARTED"
+const val NAVIGATION_STOPPED = "${BuildConfig.LIBRARY_PACKAGE_NAME}.NAVIGATION_STOPPED"
 
 const val PENDING_INTENT = "pendingIntent"
 const val NAVIGATION_DATA = "navData"

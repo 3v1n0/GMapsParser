@@ -1,10 +1,12 @@
-package me.trevi.gmapsparser
+package me.trevi.navparser_activity
 
 import android.os.Bundle
 import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import me.trevi.navparser.NavParserActivity
+import me.trevi.navparser.activity.R
 
 class InitFragment : Fragment() {
 
@@ -17,6 +19,6 @@ class InitFragment : Fragment() {
 
     override fun onStart() {
         super.onStart()
-        (activity as MainActivity).showMissingDataSnackbar()
+        (activity as NavParserActivity).showMissingDataSnackbar()
     }
 }
