@@ -108,6 +108,8 @@ class MainActivity : AppCompatActivity() {
 
         distance.text = getString(R.string.distance).format(navData.remainingDistance.localeString)
 
+        stopNavButton.isEnabled = navData.canStop
+
         var image = findViewById<ImageView>(R.id.actionDirection)
         image.setImageBitmap(navData.actionIcon.bitmap)
     }

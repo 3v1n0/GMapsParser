@@ -106,6 +106,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
                 is Button ->
                     if (entryName == "dismiss_nav") {
                         stopButton = child
+                        navigationData.canStop = true
                         Log.d(TAG, "Navigation Dismiss button set to ${child}")
                     }
                 is ImageView -> {

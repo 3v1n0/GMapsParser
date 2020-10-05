@@ -68,6 +68,7 @@ data class NavigationIcon(
 @Parcelize
 data class NavigationData(
     var isRerouting: Boolean = false,
+    var canStop: Boolean = false,
     var actionIcon: NavigationIcon = NavigationIcon(),
     var nextDirection: NavigationDirection = NavigationDirection(),
     var remainingDistance: NavigationDistance = NavigationDistance(),
