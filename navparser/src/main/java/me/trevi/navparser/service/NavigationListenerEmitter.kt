@@ -23,7 +23,7 @@ const val NAVIGATION_STOPPED = "${BuildConfig.LIBRARY_PACKAGE_NAME}.NAVIGATION_S
 const val PENDING_INTENT = "pendingIntent"
 const val NAVIGATION_DATA = "navData"
 
-class NavigationListenerEmitter : NavigationListener() {
+open class NavigationListenerEmitter : NavigationListener() {
     private val TAG = this.javaClass.simpleName;
     private var mPendingIntent : PendingIntent? = null
 
