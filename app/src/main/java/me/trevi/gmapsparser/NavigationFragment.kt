@@ -5,8 +5,7 @@ import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.Button
-import androidx.navigation.fragment.findNavController
+import kotlinx.android.synthetic.main.fragment_navigation.*
 import me.trevi.gmapsparser.lib.NavigationData
 
 class NavigationFragment : Fragment() {
@@ -22,7 +21,7 @@ class NavigationFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        view.findViewById<Button>(R.id.stopNavButton).setOnClickListener {
+        stopNavButton.setOnClickListener {
             (activity as MainActivity).stopNavigation()
         }
 

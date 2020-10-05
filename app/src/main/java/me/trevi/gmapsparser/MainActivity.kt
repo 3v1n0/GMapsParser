@@ -16,13 +16,13 @@ import android.text.format.DateFormat.getTimeFormat
 import android.util.Log
 import android.view.View
 import android.widget.ImageView
-import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.Toolbar
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.android.synthetic.main.fragment_navigation.*
 import me.trevi.gmapsparser.lib.GMAPS_PACKAGE
 import me.trevi.gmapsparser.lib.NavigationData
 import me.trevi.gmapsparser.service.*
@@ -81,23 +81,17 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun setNavigationData(navData: NavigationData) {
-        var textView = findViewById<TextView>(R.id.navigationDest)
-        textView.text = getString(
+        navigationDest.text = getString(
             if (navData.isRerouting)
                 R.string.recalculating_navigation
             else
                 R.string.navigate_to
         ).format(navData.finalDirection)
 
-        textView = findViewById(R.id.nextDirection)
-        textView.text = navData.nextDirection.localeString
+        nextDirection.text = navData.nextDirection.localeString
+        nextAction.text = navData.nextDirection.navigationDistance?.localeString
 
-        textView = findViewById(R.id.nextAction)
-        textView.text = navData.nextDirection.navigationDistance?.localeString
-
-        textView = findViewById(R.id.eta)
-
-        textView.text = getString(R.string.eta).format(
+        eta.text = getString(R.string.eta).format(
             if (navData.eta.time != null) {
                 getTimeFormat(applicationContext).format(
                     Date.from(
@@ -112,8 +106,7 @@ class MainActivity : AppCompatActivity() {
             navData.eta.duration?.localeString
         )
 
-        textView = findViewById(R.id.distance)
-        textView.text = getString(R.string.distance).format(navData.remainingDistance.localeString)
+        distance.text = getString(R.string.distance).format(navData.remainingDistance.localeString)
 
         var image = findViewById<ImageView>(R.id.actionDirection)
         image.setImageBitmap(navData.actionIcon.bitmap)
