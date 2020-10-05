@@ -38,7 +38,7 @@ enum class ContentViewType {
 class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNotification(cx, sbn) {
 
     init {
-        Log.d(TAG, "Importing $_notification")
+        Log.d(TAG, "Importing $mNotification")
 
         val normalContent = getContentView(ContentViewType.NORMAL)
         if (normalContent != null)
@@ -59,9 +59,9 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
     private fun getContentView(type : ContentViewType = ContentViewType.BEST) : RemoteViews? {
         if (type == ContentViewType.BIG || type == ContentViewType.BEST) {
             var remoteViews : RemoteViews? = if (Build.VERSION.SDK_INT >= 24) {
-                Notification.Builder.recoverBuilder(_cx, _notification).createBigContentView()
+                Notification.Builder.recoverBuilder(mCx, mNotification).createBigContentView()
             } else {
-                _notification.bigContentView;
+                mNotification.bigContentView;
             }
 
             if (remoteViews != null || type == ContentViewType.BIG)
@@ -69,9 +69,9 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         }
 
         return if (Build.VERSION.SDK_INT >= 24) {
-            Notification.Builder.recoverBuilder(_cx, _notification).createContentView()
+            Notification.Builder.recoverBuilder(mCx, mNotification).createContentView()
         } else {
-            _notification.contentView;
+            mNotification.contentView;
         }
     }
 
@@ -82,13 +82,13 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         Log.d(TAG, "Remote view parsed ${remoteViews}")
 
         val layoutInflater =
-            _gmapsCx.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
+            mAppSrcCx.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
         var viewGroup = layoutInflater.inflate(remoteViews.layoutId, null) as ViewGroup?
 
         if (viewGroup == null)
             throw Exception("Impossible to inflate viewGroup")
 
-        remoteViews.reapply(_gmapsCx, viewGroup)
+        remoteViews.reapply(mAppSrcCx, viewGroup)
         Log.d(TAG, "Remote View group parsed ${viewGroup}")
 
         return viewGroup
@@ -97,7 +97,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
     private fun parseRemoteView(group: ViewGroup) {
         for (child in group.children) {
             var entryName : String? = try {
-                if (child.id > 0) _gmapsCx.getResources().getResourceEntryName(child.id) else null
+                if (child.id > 0) mAppSrcCx.getResources().getResourceEntryName(child.id) else null
             } catch (e: Exception) { null }
 
             Log.d(TAG, "Found child with name ${entryName}: ${child}")
@@ -174,7 +174,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
 
     private fun parseNavigationTitle(title: String) {
         navigationData.nextDirection.navigationDistance = try {
-            parseNavigationDistance(_cx, title)
+            parseNavigationDistance(mCx, title)
         } catch (error: UnknownFormatConversionException) {
             NavigationDistance(title)
         }
@@ -186,7 +186,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         navigationData.nextDirection.localeString = description.toString()
         navigationData.nextDirection.localeHtml = getHtml(description)
 
-        Log.d(TAG, "Navigation direction parsed to ${navigationData.nextDirection}")
+        Log.d(TAG, "Navigation description parsed to ${navigationData.nextDirection}")
     }
 
     private fun parseNavigationTime(time: String) {
@@ -202,7 +202,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         val eta = timeParts[2]
 
         navigationData.remainingDistance = try {
-            parseNavigationDistance(_cx, distance)
+            parseNavigationDistance(mCx, distance)
         } catch (e : Exception) {
             NavigationDistance(distance)
         }
@@ -229,7 +229,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         val directionHtml = getHtml(directionsSeq)
 
         navigationData.nextDirection = try {
-            NavigationDirection(direction, directionHtml, parseNavigationDistance(_cx, distance))
+            NavigationDirection(direction, directionHtml, parseNavigationDistance(mCx, distance))
         } catch (e : UnknownFormatConversionException) {
             NavigationDirection(direction)
         }
@@ -245,7 +245,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
 
         navigationData.eta = try {
             /* TODO: Use duration to set navigationData.eta.{duration,date} based on localized strings */
-            NavigationTime(eta, timeParser(_cx, match?.value.toString()),
+            NavigationTime(eta, timeParser(mCx, match?.value.toString()),
                 null, NavigationDuration(duration))
         } catch (e : UnknownFormatConversionException) {
             NavigationTime(eta, null, null, NavigationDuration(duration))

@@ -13,9 +13,9 @@ import android.widget.Button
 
 open class NavigationNotification(cx: Context, sbn: StatusBarNotification) {
     protected val TAG = this.javaClass.simpleName
-    protected val _notification = sbn.notification
-    protected val _cx = cx
-    protected var _gmapsCx = _cx.createPackageContext(sbn.packageName,
+    protected val mNotification = sbn.notification
+    protected val mCx = cx
+    protected var mAppSrcCx = mCx.createPackageContext(sbn.packageName,
         Context.CONTEXT_IGNORE_SECURITY
     )
 

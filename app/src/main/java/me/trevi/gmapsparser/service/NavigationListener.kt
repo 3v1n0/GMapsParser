@@ -20,13 +20,13 @@ private const val NOTIFICATIONS_THRESHOLD : Long = 500 // Ignore notifications c
 
 open class NavigationListener : NotificationListenerService() {
     private val TAG = this.javaClass.simpleName;
-    private var _notificationParserCoroutine : Job? = null;
-    private var _lastNotification : StatusBarNotification? = null
-    private var _currentNotification : NavigationNotification? = null
-    protected var _enabled = false
+    private var mNotificationParserCoroutine : Job? = null;
+    private var mLastNotification : StatusBarNotification? = null
+    private var mCurrentNotification : NavigationNotification? = null
+    protected var mEnabled = false
 
     protected val currentNotification : NavigationNotification?
-        get() = _currentNotification
+        get() = mCurrentNotification
 
     override fun onListenerConnected() {
         super.onListenerConnected();
@@ -38,7 +38,7 @@ open class NavigationListener : NotificationListenerService() {
     }
 
     protected fun isGoogleNotification(sbn: StatusBarNotification?): Boolean {
-        if (!_enabled)
+        if (!mEnabled)
             return false
 
         if (!sbn!!.isOngoing || GMAPS_PACKAGE !in sbn.packageName)
@@ -57,24 +57,24 @@ open class NavigationListener : NotificationListenerService() {
     }
 
     protected fun handleGoogleNotification(sbn: StatusBarNotification) {
-        _lastNotification = sbn;
+        mLastNotification = sbn;
 
-        if (_notificationParserCoroutine != null && _notificationParserCoroutine!!.isActive)
+        if (mNotificationParserCoroutine != null && mNotificationParserCoroutine!!.isActive)
             return
 
-        _notificationParserCoroutine = GlobalScope.launch(Dispatchers.Main) {
+        mNotificationParserCoroutine = GlobalScope.launch(Dispatchers.Main) {
             delay(NOTIFICATIONS_THRESHOLD)
 
             var worker = GlobalScope.async(Dispatchers.Default) {
                 return@async GMapsNotification(
                     this@NavigationListener.applicationContext,
-                    _lastNotification!!
+                    mLastNotification!!
                 );
             }
 
             try {
                 val mapNotification = worker.await()
-                val lastNotification = _currentNotification
+                val lastNotification = mCurrentNotification
                 var updated : Boolean
 
                 if (lastNotification == null) {
@@ -86,12 +86,12 @@ open class NavigationListener : NotificationListenerService() {
                 }
 
                 if (updated) {
-                    _currentNotification = mapNotification
+                    mCurrentNotification = mapNotification
 
-                    onNavigationNotificationUpdated(_currentNotification!!);
+                    onNavigationNotificationUpdated(mCurrentNotification!!);
                 }
             } catch (error: Exception) {
-                if (!_notificationParserCoroutine!!.isCancelled)
+                if (!mNotificationParserCoroutine!!.isCancelled)
                     Log.e(TAG, "Got an error while parsing: ${error}");
             }
         }
@@ -107,10 +107,10 @@ open class NavigationListener : NotificationListenerService() {
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         if (sbn != null && isGoogleNotification(sbn)) {
             Log.d(TAG, "Notification removed ${sbn}, ${sbn.hashCode()}")
-            _notificationParserCoroutine?.cancel();
+            mNotificationParserCoroutine?.cancel();
 
-            onNavigationNotificationRemoved(_currentNotification!!)
-            _currentNotification = null;
+            onNavigationNotificationRemoved(mCurrentNotification!!)
+            mCurrentNotification = null;
         }
     }
 }

@@ -155,11 +155,12 @@ class MainActivity : AppCompatActivity() {
         when (intent?.action) {
 
             NAVIGATION_DATA_UPDATED -> {
-                Log.d(TAG, "Current destination ${getNavController().currentDestination}")
                 gotoFragment(R.id.NavigationFragment)
 
                 val navData = intent.getParcelableExtra<NavigationData>(NAVIGATION_DATA)
                 val navDataLayout = findViewById<View>(R.id.navDataLayout)
+
+                Log.v(TAG, "Got navigation data ${navData}")
 
                 if (navData != null && navDataLayout != null)
                     setNavigationData(navData)

@@ -25,18 +25,18 @@ const val NAVIGATION_DATA = "navData"
 
 class NavigationListenerEmitter : NavigationListener() {
     private val TAG = this.javaClass.simpleName;
-    private var _pendingIntent : PendingIntent? = null
+    private var mPendingIntent : PendingIntent? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.v(TAG, "onStartCommand: ${intent}")
         when (intent?.action) {
             SET_INTENT -> {
-                _pendingIntent = intent.getParcelableExtra<PendingIntent>(PENDING_INTENT)
-                _enabled = _pendingIntent != null
-                Log.d(TAG, "Set pending intent ${_pendingIntent}: ${intent}, ${intent.action}")
+                mPendingIntent = intent.getParcelableExtra(PENDING_INTENT)
+                mEnabled = mPendingIntent != null
+                Log.d(TAG, "Set pending intent ${mPendingIntent}: ${intent}, ${intent.action}")
 
-                if (_pendingIntent != null) {
-                    _pendingIntent?.send(applicationContext, 200, Intent(INTENT_SET))
+                if (mPendingIntent != null) {
+                    mPendingIntent?.send(applicationContext, 200, Intent(INTENT_SET))
                 }
             }
 
@@ -51,11 +51,11 @@ class NavigationListenerEmitter : NavigationListener() {
     }
 
     override fun onNavigationNotificationAdded(navNotification: NavigationNotification) {
-        _pendingIntent?.send(applicationContext, 200, Intent(NAVIGATION_STARTED))
+        mPendingIntent?.send(applicationContext, 200, Intent(NAVIGATION_STARTED))
     }
 
     override fun onNavigationNotificationUpdated(navNotification : NavigationNotification) {
-        _pendingIntent?.send(
+        mPendingIntent?.send(
             applicationContext, 200, Intent(NAVIGATION_DATA_UPDATED).putExtra(
                 NAVIGATION_DATA, navNotification.navigationData
             )
@@ -63,7 +63,7 @@ class NavigationListenerEmitter : NavigationListener() {
     }
 
     override fun onNavigationNotificationRemoved(navNotification : NavigationNotification) {
-        _enabled = false
-        _pendingIntent?.send(applicationContext, 200, Intent(NAVIGATION_STOPPED))
+        mEnabled = false
+        mPendingIntent?.send(applicationContext, 200, Intent(NAVIGATION_STOPPED))
     }
 }
