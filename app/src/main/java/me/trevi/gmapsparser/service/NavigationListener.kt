@@ -63,7 +63,8 @@ open class NavigationListener : NotificationListenerService() {
             return
 
         mNotificationParserCoroutine = GlobalScope.launch(Dispatchers.Main) {
-            delay(NOTIFICATIONS_THRESHOLD)
+            if (mCurrentNotification != null)
+                delay(NOTIFICATIONS_THRESHOLD)
 
             var worker = GlobalScope.async(Dispatchers.Default) {
                 return@async GMapsNotification(
