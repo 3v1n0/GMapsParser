@@ -104,13 +104,14 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
 
             when (child) {
                 is Button ->
-                    if (entryName == "dismiss_nav") {
+                    if (entryName == "dismiss_nav" || entryName == "action0") {
                         stopButton = child
                         navigationData.canStop = true
                         Log.d(TAG, "Navigation Dismiss button set to ${child}")
                     }
                 is ImageView -> {
                     if (entryName == "nav_notification_icon" ||
+                        entryName == "right_icon" ||
                         (entryName == "lockscreen_notification_icon" &&
                                 navigationData.actionIcon.bitmap == null)
                     ) {
@@ -120,21 +121,30 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
                         }
                     }
                 }
+//                is android.view.NotificationHeaderView -> {
+//                    getOriginalIconColor
+//                    getOriginalNotificationColor
+//                }
                 is TextView -> {
+                    Log.v(TAG, "Entry ${entryName} is ${child.text}")
                     when (entryName) {
                         "nav_title" -> {
                             Log.d(TAG, "Found navigation title: ${child.text}")
                             parseNavigationTitle(child.text.toString())
                         }
+//                        "header_text_divider" -> {
+//                        }
+//                        "time_divider" -> {
+//                        }
                         "nav_description" -> {
                             Log.d(TAG, "Found navigation description: ${child.text}")
                             parseNavigationDescription(child.text)
                         }
-                        "nav_time" -> {
+                        "nav_time", "header_text" -> {
                             Log.d(TAG, "Found navigation time: ${child.text}")
                             parseNavigationTime(child.text.toString())
                         }
-                        "lockscreen_directions" ->
+                        "lockscreen_directions", "title" ->
                             if (navigationData.nextDirection.localeString == null) {
                                 Log.d(TAG, "Found navigation directions: ${child.text}")
                                 parseNavigationDirections(child.text)
@@ -144,11 +154,10 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
                                 Log.d(TAG, "Found navigation oneliner: ${child.text}")
                                 parseNavigationDescription(child.text)
                             }
-                        "lockscreen_eta" ->
-                            if (navigationData.eta.localeString == null) {
-                                Log.d(TAG, "Found navigation ETA: ${child.text}")
-                                parseNavigationLockscreenEta(child.text.toString())
-                            }
+                        "lockscreen_eta", "text" -> {
+                            Log.d(TAG, "Found navigation ETA: ${child.text}")
+                            parseNavigationLockscreenEta(child.text.toString())
+                        }
                     }
                 }
                 is ViewGroup ->
@@ -264,8 +273,10 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
 
         val separator = getSplitSeparator(eta)
         navigationData.finalDirection = etaParts.subList(0, etaParts.size - 1).joinToString(separator)
-        val etaString = etaParts.last()
 
-        parseNavigationEta(etaString)
+        if (navigationData.eta.localeString == null) {
+            val etaString = etaParts.last()
+            parseNavigationEta(etaString)
+        }
     }
 }
