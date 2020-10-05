@@ -41,6 +41,14 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
         val toolbar = findViewById<Toolbar>(R.id.toolbar)
         setSupportActionBar(toolbar)
+
+        val fab = findViewById<FloatingActionButton>(R.id.fab)
+        fab.setOnClickListener {
+            val navURI = Uri.parse("google.navigation:q=43.769732, 11.255685&mode=d")
+            val mapIntent = Intent(Intent.ACTION_VIEW, navURI)
+            mapIntent.setPackage(GMAPS_PACKAGE)
+            startActivity(mapIntent)
+        }
     }
 
     private fun haveNotificationsAccess() : Boolean {
@@ -127,8 +135,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     fun showMissingDataSnackbar() {
-        if (_snackbar != null)
+        if (_snackbar != null) {
+            _snackbar!!.show()
             return
+        }
 
         _snackbar = Snackbar.make(
             findViewById(R.id.mainLayout),
@@ -174,9 +184,9 @@ class MainActivity : AppCompatActivity() {
         super.onStart()
 
         val fab = findViewById<FloatingActionButton>(R.id.fab)
-
         if (haveNotificationsAccess()) {
             startServiceListener()
+            fab.show()
         } else {
             Log.e(TAG, "No notification access for ${NavigationListenerEmitter::class.qualifiedName}")
             fab.hide()
@@ -190,13 +200,6 @@ class MainActivity : AppCompatActivity() {
                     0
                 )
             }.show()
-        }
-
-        fab.setOnClickListener {
-            val navURI = Uri.parse("google.navigation:q=43.769732, 11.255685&mode=d")
-            val mapIntent = Intent(Intent.ACTION_VIEW, navURI)
-            mapIntent.setPackage(GMAPS_PACKAGE)
-            startActivity(mapIntent)
         }
     }
 }
