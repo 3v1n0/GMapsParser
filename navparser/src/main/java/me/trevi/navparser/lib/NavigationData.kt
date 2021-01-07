@@ -12,7 +12,7 @@ import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Parcelable
 import android.text.format.DateFormat.getTimeFormat
-import kotlinx.android.parcel.Parcelize
+import kotlinx.parcelize.Parcelize
 import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.text.NumberFormat

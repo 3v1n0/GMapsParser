@@ -10,30 +10,37 @@ package me.trevi.navparser
 import android.app.PendingIntent
 import android.content.Intent
 import android.provider.Settings
-import android.text.format.DateFormat.getTimeFormat
 import android.util.Log
-import android.view.View
-import android.widget.ImageView
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
+import androidx.lifecycle.ViewModel
 import androidx.navigation.NavController
 import androidx.navigation.findNavController
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.android.synthetic.main.fragment_navigation.*
 import me.trevi.navparser.activity.R
 import me.trevi.navparser.lib.NavigationData
 import me.trevi.navparser.service.*
-import java.time.LocalDate
-import java.time.LocalDateTime
-import java.time.ZoneId
 import java.util.*
+
+
+class NavigationDataModel : ViewModel() {
+    private val mutableData = MutableLiveData<NavigationData>()
+    val liveData: LiveData<NavigationData> get() = mutableData
+    var data: NavigationData?
+        get() = mutableData.value
+        set(value) { mutableData.value = value }
+}
 
 
 open class NavParserActivity : AppCompatActivity() {
     private val TAG = this.javaClass.simpleName
     private var _snackbar : Snackbar? = null;
+    private val navDataModel: NavigationDataModel by viewModels()
 
     protected fun haveNotificationsAccess() : Boolean {
-        var notificationAccess = Settings.Secure.getString(
+        val notificationAccess = Settings.Secure.getString(
             this.contentResolver, "enabled_notification_listeners"
         )
 
@@ -59,40 +66,6 @@ open class NavParserActivity : AppCompatActivity() {
 
     fun stopServiceListener() {
         setServiceListenerIntent(null)
-    }
-
-    fun setNavigationData(navData: NavigationData) {
-        navigationDest.text = getString(
-            if (navData.isRerouting)
-                R.string.recalculating_navigation
-            else
-                R.string.navigate_to
-        ).format(navData.finalDirection)
-
-        nextDirection.text = navData.nextDirection.localeString
-        nextAction.text = navData.nextDirection.navigationDistance?.localeString
-
-        eta.text = getString(R.string.eta).format(
-            if (navData.eta.time != null) {
-                getTimeFormat(applicationContext).format(
-                    Date.from(
-                        LocalDateTime.of(LocalDate.now(), navData.eta.time).atZone(
-                            ZoneId.systemDefault()
-                        ).toInstant()
-                    )
-                )
-            } else {
-                navData.eta.localeString
-            },
-            navData.eta.duration?.localeString
-        )
-
-        distance.text = getString(R.string.distance).format(navData.remainingDistance.localeString)
-
-        stopNavButton.isEnabled = navData.canStop
-
-        var image = findViewById<ImageView>(R.id.actionDirection)
-        image.setImageBitmap(navData.actionIcon.bitmap)
     }
 
     private fun getNavController() : NavController {
@@ -139,12 +112,9 @@ open class NavParserActivity : AppCompatActivity() {
                 gotoFragment(R.id.NavigationFragment)
 
                 val navData = intent.getParcelableExtra<NavigationData>(NAVIGATION_DATA)
-                val navDataLayout = findViewById<View>(R.id.navDataLayout)
 
                 Log.v(TAG, "Got navigation data ${navData}")
-
-                if (navData != null && navDataLayout != null)
-                    setNavigationData(navData)
+                navDataModel.data = navData
             }
 
             NAVIGATION_STARTED -> {
