@@ -63,7 +63,7 @@ data class NavigationTime(
 data class NavigationIcon(
     @Contextual
     val bitmap: Bitmap? = null,
-) : Parcelable {
+    ) : Parcelable, AutoCloseable {
     override fun equals(other: Any?): Boolean {
         return if (other !is NavigationIcon || bitmap !is Bitmap)
             super.equals(other)
@@ -72,6 +72,10 @@ data class NavigationIcon(
 
     override fun hashCode(): Int {
         return bitmap?.hashCode() ?: 0
+    }
+
+    override fun close() {
+        bitmap?.recycle()
     }
 }
 
