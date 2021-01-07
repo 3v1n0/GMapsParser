@@ -69,6 +69,10 @@ data class NavigationIcon(
             super.equals(other)
         else bitmap.sameAs(other.bitmap)
     }
+
+    override fun hashCode(): Int {
+        return bitmap?.hashCode() ?: 0
+    }
 }
 
 @Parcelize @Serializable
