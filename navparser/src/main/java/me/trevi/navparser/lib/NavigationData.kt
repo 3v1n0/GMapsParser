@@ -128,9 +128,9 @@ fun parseNavigationDistance(cx: Context, distance: String) : NavigationDistance 
     if (distanceParts.size != 2)
         throw(UnknownFormatConversionException("Impossible to parse navigation distance ${distance}"))
 
-    var distanceIndex = if (localeInfo.isRtl) 1 else 0
-    var distancePart = distanceParts[distanceIndex]
-    var unitPart = distanceParts[(distanceIndex + 1) % distanceParts.size]
+    val distanceIndex = if (localeInfo.isRtl) 1 else 0
+    val distancePart = distanceParts[distanceIndex]
+    val unitPart = distanceParts[(distanceIndex + 1) % distanceParts.size]
 
     return NavigationDistance(
         distance,
@@ -140,7 +140,7 @@ fun parseNavigationDistance(cx: Context, distance: String) : NavigationDistance 
 }
 
 fun timeParser(cx: Context, time: String) : LocalTime {
-    var parsedDate = getTimeFormat(cx).parse(time)
+    val parsedDate = getTimeFormat(cx).parse(time)
 
     if (parsedDate == null)
         throw(UnknownFormatConversionException("Impossible to parse navigation time ${time}"))
@@ -156,7 +156,7 @@ fun timeParser(cx: Context, time: String) : LocalTime {
 fun timeDurationParser(cx: Context, duration: String) : Duration {
     val localeInfo = getCurrentLocale(cx)
     val format = SimpleDateFormat("HH:mm Z", localeInfo.locale)
-    var parsedDate = format.parse("${duration} +0000")
+    val parsedDate = format.parse("${duration} +0000")
 
     if (parsedDate == null)
         throw(UnknownFormatConversionException("Impossible to parse navigation distance ${duration}"))
