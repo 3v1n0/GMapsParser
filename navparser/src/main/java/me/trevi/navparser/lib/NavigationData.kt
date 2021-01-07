@@ -131,10 +131,14 @@ fun parseNavigationDistance(cx: Context, distance: String) : NavigationDistance 
     val distanceIndex = if (localeInfo.isRtl) 1 else 0
     val distancePart = distanceParts[distanceIndex]
     val unitPart = distanceParts[(distanceIndex + 1) % distanceParts.size]
+    val distanceValue = NumberFormat.getInstance(getCurrentLocale(cx).locale).parse(distancePart)
+
+    if (distanceValue == null)
+        throw(UnknownFormatConversionException("Impossible to parse navigation distance ${distancePart}"))
 
     return NavigationDistance(
         distance,
-        NumberFormat.getInstance(getCurrentLocale(cx).locale).parse(distancePart).toDouble(),
+        distanceValue.toDouble(),
         unitStringToDistanceUnit(unitPart)
     )
 }
