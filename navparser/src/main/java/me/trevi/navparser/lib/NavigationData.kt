@@ -13,6 +13,8 @@ import android.graphics.Bitmap
 import android.os.Parcelable
 import android.text.format.DateFormat.getTimeFormat
 import kotlinx.android.parcel.Parcelize
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.time.*
@@ -26,38 +28,42 @@ enum class DistanceUnit {
     INVALID,
 }
 
-@Parcelize
+@Parcelize @Serializable
 data class NavigationDistance(
     val localeString: String? = null,
     val distance: Double = -1.0,
     val unit: DistanceUnit = DistanceUnit.INVALID,
 ) : Parcelable
 
-@Parcelize
+@Parcelize @Serializable
 data class NavigationDirection(
     var localeString: String? = null,
     var localeHtml: String? = null,
     var navigationDistance: NavigationDistance? = null,
 ) : Parcelable
 
-@Parcelize
+@Parcelize @Serializable
 data class NavigationDuration(
     val localeString: String? = null,
+    @Contextual
     val duration: Duration = Duration.ZERO,
 ) : Parcelable
 
-@Parcelize
+@Parcelize @Serializable
 data class NavigationTime(
     val localeString: String? = null,
+    @Contextual
     val time: LocalTime? = null,
+    @Contextual
     val date: LocalDate? = null,
     val duration: NavigationDuration? = null,
 ) : Parcelable
 
-@Parcelize
+@Parcelize @Serializable
 data class NavigationIcon(
+    @Contextual
     val bitmap: Bitmap? = null,
-) :Parcelable {
+) : Parcelable {
     override fun equals(other: Any?): Boolean {
         return if (other !is NavigationIcon || bitmap !is Bitmap)
             super.equals(other)
@@ -65,7 +71,7 @@ data class NavigationIcon(
     }
 }
 
-@Parcelize
+@Parcelize @Serializable
 data class NavigationData(
     var isRerouting: Boolean = false,
     var canStop: Boolean = false,
