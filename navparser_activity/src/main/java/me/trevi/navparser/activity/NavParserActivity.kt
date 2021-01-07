@@ -38,6 +38,7 @@ open class NavParserActivity : AppCompatActivity() {
     private val TAG = this.javaClass.simpleName
     private var mSnackbar : Snackbar? = null;
     private val mNavDataModel: NavigationDataModel by viewModels()
+    val isNavigationActive get() = getNavController().currentDestination?.id == R.id.NavigationFragment
 
     protected fun haveNotificationsAccess() : Boolean {
         val notificationAccess = Settings.Secure.getString(
