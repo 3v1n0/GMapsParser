@@ -61,6 +61,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
             var remoteViews : RemoteViews? = if (Build.VERSION.SDK_INT >= 24) {
                 Notification.Builder.recoverBuilder(mCx, mNotification).createBigContentView()
             } else {
+                @Suppress("DEPRECATION")
                 mNotification.bigContentView;
             }
 
@@ -71,6 +72,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         return if (Build.VERSION.SDK_INT >= 24) {
             Notification.Builder.recoverBuilder(mCx, mNotification).createContentView()
         } else {
+            @Suppress("DEPRECATION")
             mNotification.contentView;
         }
     }
