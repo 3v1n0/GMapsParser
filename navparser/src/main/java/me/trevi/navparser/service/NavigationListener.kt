@@ -21,7 +21,7 @@ private const val NOTIFICATIONS_THRESHOLD : Long = 500 // Ignore notifications c
 open class NavigationListener : NotificationListenerService() {
     private val TAG = this.javaClass.simpleName;
     private var mNotificationParserCoroutine : Job? = null;
-    private var mLastNotification : StatusBarNotification? = null
+    private lateinit var mLastNotification : StatusBarNotification
     private var mCurrentNotification : NavigationNotification? = null
     protected var mEnabled = false
 
@@ -69,7 +69,7 @@ open class NavigationListener : NotificationListenerService() {
             var worker = GlobalScope.async(Dispatchers.Default) {
                 return@async GMapsNotification(
                     this@NavigationListener.applicationContext,
-                    mLastNotification!!
+                    mLastNotification
                 );
             }
 
