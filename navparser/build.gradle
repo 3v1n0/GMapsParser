@@ -1,8 +1,9 @@
-apply plugin: 'com.android.library'
-apply plugin: 'kotlin-android'
-apply plugin: 'kotlin-android-extensions'
-apply plugin: 'kotlinx-serialization'
-apply plugin: 'com.github.dcendents.android-maven'
+plugins {
+    id 'com.android.library'
+    id 'kotlin-android'
+    id 'kotlin-parcelize'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.4.10'
+}
 
 group='com.github.3v1n0.navparser'
 
