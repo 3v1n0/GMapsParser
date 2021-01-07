@@ -2,7 +2,7 @@
 /*
  * SPDX-License-Identifier: LGPL-3.0-or-later
  *
- * Copyright (c) 2020 Marco Trevisan <marco.trevisan@canonical.com>
+ * Copyright (c) 2020 Marco Trevisan <mail@trevi.me>
  */
 
 package me.trevi.navparser.service
