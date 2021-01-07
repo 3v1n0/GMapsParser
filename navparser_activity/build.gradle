@@ -3,7 +3,8 @@ plugins {
     id 'kotlin-android'
 }
 
-group='com.github.3v1n0.navparser'
+group="$gmaps_parser_groupId"
+version="$gmaps_parser_version"
 
 android {
     compileSdkVersion 30
@@ -13,7 +14,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
-        versionName "1.0"
+        versionName "$gmaps_parser_version"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
