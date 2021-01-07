@@ -36,8 +36,8 @@ class NavigationDataModel : ViewModel() {
 
 open class NavParserActivity : AppCompatActivity() {
     private val TAG = this.javaClass.simpleName
-    private var _snackbar : Snackbar? = null;
-    private val navDataModel: NavigationDataModel by viewModels()
+    private var mSnackbar : Snackbar? = null;
+    private val mNavDataModel: NavigationDataModel by viewModels()
 
     protected fun haveNotificationsAccess() : Boolean {
         val notificationAccess = Settings.Secure.getString(
@@ -84,22 +84,22 @@ open class NavParserActivity : AppCompatActivity() {
     }
 
     fun showMissingDataSnackbar() {
-        if (_snackbar != null) {
-            _snackbar!!.show()
+        if (mSnackbar != null) {
+            mSnackbar!!.show()
             return
         }
 
-        _snackbar = Snackbar.make(
+        mSnackbar = Snackbar.make(
             findViewById(android.R.id.content),
             R.string.no_navigation_started,
             Snackbar.LENGTH_INDEFINITE
         )
-        _snackbar!!.show()
+        mSnackbar!!.show()
     }
 
     fun hideMissingDataSnackbar() {
-        _snackbar?.dismiss()
-        _snackbar = null
+        mSnackbar?.dismiss()
+        mSnackbar = null
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
@@ -114,7 +114,7 @@ open class NavParserActivity : AppCompatActivity() {
                 val navData = intent.getParcelableExtra<NavigationData>(NAVIGATION_DATA)
 
                 Log.v(TAG, "Got navigation data ${navData}")
-                navDataModel.data = navData
+                mNavDataModel.data = navData
             }
 
             NAVIGATION_STARTED -> {
