@@ -3,10 +3,8 @@ plugins {
     id 'kotlin-android'
     id 'kotlin-parcelize'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.4.10'
+    id 'maven-publish'
 }
-
-group="$gmaps_parser_groupId"
-version="$gmaps_parser_version"
 
 android {
     compileSdkVersion 30
@@ -51,4 +49,27 @@ dependencies {
     androidTestImplementation 'androidx.test.ext:junit:1.1.2'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.3.0'
     coreLibraryDesugaring 'com.android.tools:desugar_jdk_libs:1.0.5'
+}
+
+afterEvaluate {
+    publishing {
+        publications {
+            release(MavenPublication) {
+                from components.release
+
+                groupId = "$gmaps_parser_groupId"
+                artifactId = 'navparser'
+                version = "$gmaps_parser_version"
+            }
+
+            debug(MavenPublication) {
+                from components.debug
+
+                groupId = "$gmaps_parser_groupId"
+                artifactId = 'navparser-debug'
+                version = "$gmaps_parser_version"
+                alias true
+            }
+        }
+    }
 }
