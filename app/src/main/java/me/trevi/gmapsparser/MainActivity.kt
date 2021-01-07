@@ -29,10 +29,19 @@ class MainActivity : NavParserActivity() {
     override fun onStart() {
         super.onStart()
 
-        if (haveNotificationsAccess())
+        toggleFabVisbility()
+    }
+
+    private fun toggleFabVisbility() {
+        if (haveNotificationsAccess() && !isNavigationActive)
             binding.fab.show()
         else
             binding.fab.hide()
     }
 
+    override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
+        super.onActivityResult(requestCode, resultCode, intent)
+
+        toggleFabVisbility()
+    }
 }
