@@ -7,7 +7,7 @@ plugins {
 }
 
 ext {
-    kotlin_version = "1.4.10"
+    kotlin_version = "1.4.21"
     gmaps_parser_version = "0.0.1"
     gmaps_parser_groupId = 'com.github.3v1n0.navparser'
 }
