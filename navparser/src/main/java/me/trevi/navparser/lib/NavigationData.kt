@@ -13,7 +13,6 @@ import android.graphics.Bitmap
 import android.os.Parcelable
 import android.text.format.DateFormat.getTimeFormat
 import kotlinx.parcelize.Parcelize
-import kotlinx.serialization.Contextual
 import kotlinx.serialization.Serializable
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -45,23 +44,23 @@ data class NavigationDirection(
 @Parcelize @Serializable
 data class NavigationDuration(
     val localeString: String? = null,
-    @Contextual
+    @Serializable(with = DurationSerializer::class)
     val duration: Duration = Duration.ZERO,
 ) : Parcelable
 
 @Parcelize @Serializable
 data class NavigationTime(
     val localeString: String? = null,
-    @Contextual
+    @Serializable(with = LocalTimeSerializer::class)
     val time: LocalTime? = null,
-    @Contextual
+    @Serializable(with = LocalDateSerializer::class)
     val date: LocalDate? = null,
     val duration: NavigationDuration? = null,
 ) : Parcelable
 
 @Parcelize @Serializable
 data class NavigationIcon(
-    @Contextual
+    @Serializable(with = BitmapBase64Serializer::class)
     val bitmap: Bitmap? = null,
     ) : Parcelable, AutoCloseable {
     override fun equals(other: Any?): Boolean {
