@@ -58,7 +58,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
 
     private fun getContentView(type : ContentViewType = ContentViewType.BEST) : RemoteViews? {
         if (type == ContentViewType.BIG || type == ContentViewType.BEST) {
-            var remoteViews : RemoteViews? = if (Build.VERSION.SDK_INT >= 24) {
+            val remoteViews : RemoteViews? = if (Build.VERSION.SDK_INT >= 24) {
                 Notification.Builder.recoverBuilder(mCx, mNotification).createBigContentView()
             } else {
                 @Suppress("DEPRECATION")
@@ -85,7 +85,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
 
         val layoutInflater =
             mAppSrcCx.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
-        var viewGroup = layoutInflater.inflate(remoteViews.layoutId, null) as ViewGroup?
+        val viewGroup = layoutInflater.inflate(remoteViews.layoutId, null) as ViewGroup?
 
         if (viewGroup == null)
             throw Exception("Impossible to inflate viewGroup")

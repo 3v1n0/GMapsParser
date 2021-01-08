@@ -76,7 +76,7 @@ open class NavigationListener : NotificationListenerService() {
             try {
                 val mapNotification = worker.await()
                 val lastNotification = mCurrentNotification
-                var updated : Boolean
+                val updated : Boolean
 
                 if (lastNotification == null) {
                     onNavigationNotificationAdded(mapNotification)
