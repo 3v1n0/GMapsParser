@@ -119,7 +119,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
                     ) {
                         Log.d(TAG, "Found navigation icon: ${child.hashCode()}")
                         (child.drawable as BitmapDrawable).bitmap.also {
-                            navigationData.actionIcon = NavigationIcon(it);
+                            navigationData.actionIcon = NavigationIcon(it.copy(it.config, false))
                         }
                     }
                 }
