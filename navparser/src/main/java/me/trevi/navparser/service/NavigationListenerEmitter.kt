@@ -32,7 +32,7 @@ open class NavigationListenerEmitter : NavigationListener() {
         when (intent?.action) {
             SET_INTENT -> {
                 mPendingIntent = intent.getParcelableExtra(PENDING_INTENT)
-                mEnabled = mPendingIntent != null
+                enabled = mPendingIntent != null
                 Log.d(TAG, "Set pending intent ${mPendingIntent}: ${intent}, ${intent.action}")
 
                 if (mPendingIntent != null) {
@@ -63,7 +63,7 @@ open class NavigationListenerEmitter : NavigationListener() {
     }
 
     override fun onNavigationNotificationRemoved(navNotification : NavigationNotification) {
-        mEnabled = false
+        enabled = false
         mPendingIntent?.send(applicationContext, 200, Intent(NAVIGATION_STOPPED))
     }
 }

@@ -23,7 +23,17 @@ open class NavigationListener : NotificationListenerService() {
     private var mNotificationParserCoroutine : Job? = null;
     private lateinit var mLastNotification : StatusBarNotification
     private var mCurrentNotification : NavigationNotification? = null
-    protected var mEnabled = false
+    private var mEnabled = false
+
+    protected var enabled : Boolean
+        get() = mEnabled
+        set(value) {
+            mEnabled = value
+            if (mEnabled)
+                checkActiveNotifications()
+            else
+                mCurrentNotification = null
+        }
 
     protected val currentNotification : NavigationNotification?
         get() = mCurrentNotification
@@ -31,6 +41,10 @@ open class NavigationListener : NotificationListenerService() {
     override fun onListenerConnected() {
         super.onListenerConnected();
 
+        checkActiveNotifications()
+    }
+
+    private fun checkActiveNotifications() {
         if (Build.VERSION.SDK_INT < 23)
             return
 
