@@ -18,7 +18,6 @@ import java.time.ZoneId
 import java.util.*
 
 class NavigationFragment : Fragment() {
-    private val TAG = this.javaClass.simpleName
     private var _binding: FragmentNavigationBinding? = null
     private val binding get() = _binding!!
     private val navDataModel: NavigationDataModel by activityViewModels()

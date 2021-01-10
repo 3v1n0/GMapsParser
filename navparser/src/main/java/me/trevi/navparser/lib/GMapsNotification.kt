@@ -14,7 +14,6 @@ import android.os.Build
 import android.service.notification.StatusBarNotification
 import android.text.Html
 import android.text.Spanned
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import android.widget.Button
@@ -22,6 +21,7 @@ import android.widget.ImageView
 import android.widget.RemoteViews
 import android.widget.TextView
 import androidx.core.view.children
+import timber.log.Timber as Log
 import java.util.*
 
 const val GMAPS_PACKAGE = "com.google.android.apps.maps"
@@ -38,7 +38,7 @@ enum class ContentViewType {
 class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNotification(cx, sbn) {
 
     init {
-        Log.d(TAG, "Importing $mNotification")
+        Log.d("Importing $mNotification")
 
         val normalContent = getContentView(ContentViewType.NORMAL)
         if (normalContent != null)
@@ -49,11 +49,11 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
             parseRemoteView(getRemoteViewGroup(bestContentView))
 
         if (!navigationData.isValid()) {
-            Log.w(TAG, "Invalid navigation data: ${navigationData}")
+            Log.w("Invalid navigation data: $navigationData")
             throw(Exception("Impossible to parse navigation notification"))
         }
 
-        Log.d(TAG,"Parsing completed: ${navigationData}")
+        Log.d("Parsing completed: $navigationData")
     }
 
     private fun getContentView(type : ContentViewType = ContentViewType.BEST) : RemoteViews? {
@@ -81,7 +81,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         if (remoteViews == null) {
             throw Exception("Impossible to create notification view")
         }
-        Log.d(TAG, "Remote view parsed ${remoteViews}")
+        Log.d("Remote view parsed $remoteViews")
 
         val layoutInflater =
             mAppSrcCx.getSystemService(Context.LAYOUT_INFLATER_SERVICE) as LayoutInflater
@@ -91,7 +91,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
             throw Exception("Impossible to inflate viewGroup")
 
         remoteViews.reapply(mAppSrcCx, viewGroup)
-        Log.d(TAG, "Remote View group parsed ${viewGroup}")
+        Log.d("Remote View group parsed $viewGroup")
 
         return viewGroup
     }
@@ -102,14 +102,14 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
                 if (child.id > 0) mAppSrcCx.getResources().getResourceEntryName(child.id) else null
             } catch (e: Exception) { null }
 
-            Log.d(TAG, "Found child with name ${entryName}: ${child}")
+            Log.d("Found child with name $entryName: $child")
 
             when (child) {
                 is Button ->
                     if (entryName == "dismiss_nav" || entryName == "action0") {
                         stopButton = child
                         navigationData.canStop = true
-                        Log.d(TAG, "Navigation Dismiss button set to ${child}")
+                        Log.d("Navigation Dismiss button set to $child")
                     }
                 is ImageView -> {
                     if (entryName == "nav_notification_icon" ||
@@ -117,7 +117,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
                         (entryName == "lockscreen_notification_icon" &&
                                 navigationData.actionIcon.bitmap == null)
                     ) {
-                        Log.d(TAG, "Found navigation icon: ${child.hashCode()}")
+                        Log.d("Found navigation icon: ${child.hashCode()}")
                         (child.drawable as BitmapDrawable).bitmap.also {
                             navigationData.actionIcon = NavigationIcon(it.copy(it.config, false))
                         }
@@ -128,10 +128,10 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
 //                    getOriginalNotificationColor
 //                }
                 is TextView -> {
-                    Log.v(TAG, "Entry ${entryName} is ${child.text}")
+                    Log.v("Entry $entryName is ${child.text}")
                     when (entryName) {
                         "nav_title" -> {
-                            Log.d(TAG, "Found navigation title: ${child.text}")
+                            Log.d("Found navigation title: ${child.text}")
                             parseNavigationTitle(child.text.toString())
                         }
 //                        "header_text_divider" -> {
@@ -139,25 +139,25 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
 //                        "time_divider" -> {
 //                        }
                         "nav_description" -> {
-                            Log.d(TAG, "Found navigation description: ${child.text}")
+                            Log.d("Found navigation description: ${child.text}")
                             parseNavigationDescription(child.text)
                         }
                         "nav_time", "header_text" -> {
-                            Log.d(TAG, "Found navigation time: ${child.text}")
+                            Log.d("Found navigation time: ${child.text}")
                             parseNavigationTime(child.text.toString())
                         }
                         "lockscreen_directions", "title" ->
                             if (navigationData.nextDirection.localeString == null) {
-                                Log.d(TAG, "Found navigation directions: ${child.text}")
+                                Log.d("Found navigation directions: ${child.text}")
                                 parseNavigationDirections(child.text)
                             }
                         "lockscreen_oneliner" ->
                             if (navigationData.nextDirection.localeString == null) {
-                                Log.d(TAG, "Found navigation oneliner: ${child.text}")
+                                Log.d("Found navigation oneliner: ${child.text}")
                                 parseNavigationDescription(child.text)
                             }
                         "lockscreen_eta", "text" -> {
-                            Log.d(TAG, "Found navigation ETA: ${child.text}")
+                            Log.d("Found navigation ETA: ${child.text}")
                             parseNavigationLockscreenEta(child.text.toString())
                         }
                     }
@@ -190,20 +190,20 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
             NavigationDistance(title)
         }
 
-        Log.d(TAG, "Navigation title parsed to ${navigationData.nextDirection}")
+        Log.d("Navigation title parsed to ${navigationData.nextDirection}")
     }
 
     private fun parseNavigationDescription(description: CharSequence) {
         navigationData.nextDirection.localeString = description.toString()
         navigationData.nextDirection.localeHtml = getHtml(description)
 
-        Log.d(TAG, "Navigation description parsed to ${navigationData.nextDirection}")
+        Log.d("Navigation description parsed to ${navigationData.nextDirection}")
     }
 
     private fun parseNavigationTime(time: String) {
         val timeParts = time.split(SPLIT_REGEX)
 
-        Log.d(TAG, "Navigation time split in ${timeParts}")
+        Log.d("Navigation time split in $timeParts")
 
         if (timeParts.size != 3)
             throw(UnknownFormatConversionException("Impossible to parse navigation time $time"))
@@ -217,7 +217,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         } catch (e : Exception) {
             NavigationDistance(distance)
         }
-        Log.d(TAG, "Navigation time parsed to ${navigationData.remainingDistance}")
+        Log.d("Navigation time parsed to ${navigationData.remainingDistance}")
 
         parseNavigationEta(eta, duration)
     }
@@ -226,7 +226,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         val directions = directionsSeq.toString()
         val directionsParts = directions.split(SPLIT_REGEX)
 
-        Log.d(TAG, "Navigation directions split in ${directionsParts}")
+        Log.d("Navigation directions split in $directionsParts")
 
         if (directionsParts.size < 2) {
             navigationData.isRerouting = true
@@ -245,14 +245,14 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
             NavigationDirection(direction)
         }
 
-        Log.d(TAG, "Navigation directions parsed to ${navigationData.nextDirection}")
+        Log.d("Navigation directions parsed to ${navigationData.nextDirection}")
     }
 
     private fun parseNavigationEta(eta : String, duration: String? = null) {
         val match = ETA_REGEX.find(eta)
 
         if (match != null)
-            Log.d(TAG, "Navigation ETA found  ${match.groupValues}")
+            Log.d("Navigation ETA found ${match.groupValues}, duration: $duration")
 
         navigationData.eta = try {
             /* TODO: Use duration to set navigationData.eta.{duration,date} based on localized strings */
@@ -262,13 +262,13 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
             NavigationTime(eta, null, null, NavigationDuration(duration))
         }
 
-        Log.d(TAG, "Navigation ETA parsed to ${navigationData.eta}")
+        Log.d("Navigation ETA parsed to ${navigationData.eta}")
     }
 
     private fun parseNavigationLockscreenEta(eta: String) {
         val etaParts = eta.split(SPLIT_REGEX)
 
-        Log.d(TAG, "Navigation ETA split in ${etaParts}")
+        Log.d("Navigation ETA split in $etaParts")
 
         if (etaParts.size < 2)
             return

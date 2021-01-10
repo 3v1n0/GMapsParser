@@ -9,8 +9,8 @@ package me.trevi.navparser
 
 import android.app.PendingIntent
 import android.content.Intent
+import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.lifecycle.LiveData
@@ -22,6 +22,7 @@ import com.google.android.material.snackbar.Snackbar
 import me.trevi.navparser.activity.R
 import me.trevi.navparser.lib.NavigationData
 import me.trevi.navparser.service.*
+import timber.log.Timber as Log
 import java.util.*
 
 
@@ -35,10 +36,19 @@ class NavigationDataModel : ViewModel() {
 
 
 open class NavParserActivity : AppCompatActivity() {
-    private val TAG = this.javaClass.simpleName
     private var mSnackbar : Snackbar? = null;
     private val mNavDataModel: NavigationDataModel by viewModels()
     val isNavigationActive get() = getNavController().currentDestination?.id == R.id.NavigationFragment
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+
+        if (BuildConfig.DEBUG) {
+            Log.plant(Log.DebugTree())
+        }
+
+        Log.d("${this.javaClass.simpleName} created")
+    }
 
     protected fun haveNotificationsAccess() : Boolean {
         val notificationAccess = Settings.Secure.getString(
@@ -53,7 +63,7 @@ open class NavParserActivity : AppCompatActivity() {
     }
 
     fun stopNavigation() {
-        Log.d(TAG, "stopNavigation ${serviceIntent(STOP_NAVIGATION)}")
+        Log.d("stopNavigation ${serviceIntent(STOP_NAVIGATION)}")
         startService(serviceIntent(STOP_NAVIGATION))
     }
 
@@ -74,7 +84,7 @@ open class NavParserActivity : AppCompatActivity() {
     }
 
     private fun gotoFragment(fragmentId: Int) {
-        Log.d(TAG, "Changing fragment ${getNavController().currentDestination} -> ${fragmentId}")
+        Log.d("Changing fragment ${getNavController().currentDestination} -> $fragmentId")
         if (getNavController().currentDestination?.id == fragmentId)
             return
 
@@ -106,7 +116,7 @@ open class NavParserActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, intent: Intent?) {
         super.onActivityResult(requestCode, resultCode, intent)
 
-        Log.d(TAG, "Got activity result: ${intent}, ${intent?.extras}, ${intent?.action}")
+        Log.d("Got activity result: $intent, ${intent?.extras}, ${intent?.action}")
         when (intent?.action) {
 
             NAVIGATION_DATA_UPDATED -> {
@@ -114,7 +124,7 @@ open class NavParserActivity : AppCompatActivity() {
 
                 val navData = intent.getParcelableExtra<NavigationData>(NAVIGATION_DATA)
 
-                Log.v(TAG, "Got navigation data ${navData}")
+                Log.v("Got navigation data $navData")
                 mNavDataModel.data = navData
             }
 
@@ -149,7 +159,7 @@ open class NavParserActivity : AppCompatActivity() {
         } else {
             gotoFragment(R.id.InitFragment)
             showMissingNotificationsAccessSnackbar()
-            Log.e(TAG, "No notification access for ${NavigationListenerEmitter::class.qualifiedName}")
+            Log.e("No notification access for ${NavigationListenerEmitter::class.qualifiedName}")
         }
     }
 }

@@ -9,9 +9,9 @@ package me.trevi.navparser.service
 
 import android.app.PendingIntent
 import android.content.Intent
-import android.util.Log
 import me.trevi.navparser.BuildConfig
 import me.trevi.navparser.lib.NavigationNotification
+import timber.log.Timber as Log
 
 const val SET_INTENT = "${BuildConfig.LIBRARY_PACKAGE_NAME}.SET_INTENT"
 const val INTENT_SET = "${BuildConfig.LIBRARY_PACKAGE_NAME}.INTENT_SET"
@@ -24,16 +24,15 @@ const val PENDING_INTENT = "pendingIntent"
 const val NAVIGATION_DATA = "navData"
 
 open class NavigationListenerEmitter : NavigationListener() {
-    private val TAG = this.javaClass.simpleName;
     private var mPendingIntent : PendingIntent? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.v(TAG, "onStartCommand: ${intent}")
+        Log.v("onStartCommand: $intent")
         when (intent?.action) {
             SET_INTENT -> {
                 mPendingIntent = intent.getParcelableExtra(PENDING_INTENT)
                 enabled = mPendingIntent != null
-                Log.d(TAG, "Set pending intent ${mPendingIntent}: ${intent}, ${intent.action}")
+                Log.d("Set pending intent $mPendingIntent: $intent, ${intent.action}")
 
                 if (mPendingIntent != null) {
                     mPendingIntent?.send(applicationContext, 200, Intent(INTENT_SET))
@@ -41,7 +40,7 @@ open class NavigationListenerEmitter : NavigationListener() {
             }
 
             STOP_NAVIGATION -> {
-                Log.d(TAG, "Stopping navigation requested: ${currentNotification?.stopButton}")
+                Log.d("Stopping navigation requested: ${currentNotification?.stopButton}")
                 if (currentNotification != null)
                     currentNotification!!.close()
             }

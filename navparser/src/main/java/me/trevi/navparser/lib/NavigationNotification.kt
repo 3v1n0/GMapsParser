@@ -13,7 +13,6 @@ import android.service.notification.StatusBarNotification
 import android.widget.Button
 
 open class NavigationNotification(cx: Context, sbn: StatusBarNotification) {
-    protected val TAG = this.javaClass.simpleName
     protected val mNotification : Notification = sbn.notification
     protected val mCx = cx
     protected var mAppSrcCx: Context = mCx.createPackageContext(sbn.packageName,

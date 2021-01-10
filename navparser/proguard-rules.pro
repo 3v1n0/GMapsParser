@@ -24,3 +24,8 @@
     public static *** d(...);
     public static *** v(...);
 }
+
+-assumenosideeffects class timber.log.Timber {
+    public static *** d(...);
+    public static *** v(...);
+}

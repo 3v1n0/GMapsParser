@@ -10,16 +10,16 @@ package me.trevi.navparser.service
 import android.os.Build
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
-import android.util.Log
 import kotlinx.coroutines.*
+import me.trevi.navparser.BuildConfig
 import me.trevi.navparser.lib.GMAPS_PACKAGE
 import me.trevi.navparser.lib.GMapsNotification
 import me.trevi.navparser.lib.NavigationNotification
+import timber.log.Timber as Log
 
 private const val NOTIFICATIONS_THRESHOLD : Long = 500 // Ignore notifications coming earlier, in ms
 
 open class NavigationListener : NotificationListenerService() {
-    private val TAG = this.javaClass.simpleName;
     private var mNotificationParserCoroutine : Job? = null;
     private lateinit var mLastNotification : StatusBarNotification
     private var mCurrentNotification : NavigationNotification? = null
@@ -45,6 +45,14 @@ open class NavigationListener : NotificationListenerService() {
 
     protected val currentNotification : NavigationNotification?
         get() = mCurrentNotification
+
+    override fun onCreate() {
+        super.onCreate()
+
+        if (BuildConfig.DEBUG) {
+            Log.plant(Log.DebugTree())
+        }
+    }
 
     override fun onListenerConnected() {
         super.onListenerConnected();
@@ -105,7 +113,7 @@ open class NavigationListener : NotificationListenerService() {
                     updated = true
                 } else {
                     updated = lastNotification.navigationData != mapNotification.navigationData
-                    Log.v(TAG, "Notification is different than previous: ${updated}")
+                    Log.v("Notification is different than previous: $updated")
                 }
 
                 if (updated) {
@@ -115,13 +123,13 @@ open class NavigationListener : NotificationListenerService() {
                 }
             } catch (error: Exception) {
                 if (!mNotificationParserCoroutine!!.isCancelled)
-                    Log.e(TAG, "Got an error while parsing: ${error}");
+                    Log.e("Got an error while parsing: $error");
             }
         }
     }
 
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
-        Log.v(TAG, "Got notification from ${sbn?.packageName}")
+        Log.v("Got notification from ${sbn?.packageName}")
 
         if (sbn != null && isGoogleNotification(sbn))
             handleGoogleNotification(sbn)
@@ -129,7 +137,7 @@ open class NavigationListener : NotificationListenerService() {
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
         if (sbn != null && isGoogleNotification(sbn)) {
-            Log.d(TAG, "Notification removed ${sbn}, ${sbn.hashCode()}")
+            Log.d("Notification removed ${sbn}, ${sbn.hashCode()}")
             mNotificationParserCoroutine?.cancel();
 
             onNavigationNotificationRemoved(mCurrentNotification!!)
