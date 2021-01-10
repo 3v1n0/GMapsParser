@@ -23,6 +23,7 @@ open class NavigationListener : NotificationListenerService() {
     private var mNotificationParserCoroutine : Job? = null;
     private lateinit var mLastNotification : StatusBarNotification
     private var mCurrentNotification : NavigationNotification? = null
+    private var mNotificationsThreshold : Long = NOTIFICATIONS_THRESHOLD
     private var mEnabled = false
 
     protected var enabled : Boolean
@@ -33,6 +34,14 @@ open class NavigationListener : NotificationListenerService() {
                 checkActiveNotifications()
             else
                 mCurrentNotification = null
+        }
+
+    protected var notificationsThreshold : Long
+        get() = mNotificationsThreshold
+        set(value) {
+            mNotificationsThreshold = value
+            mNotificationParserCoroutine?.cancel()
+            checkActiveNotifications()
         }
 
     protected val currentNotification : NavigationNotification?
@@ -78,7 +87,7 @@ open class NavigationListener : NotificationListenerService() {
 
         mNotificationParserCoroutine = GlobalScope.launch(Dispatchers.Main) {
             if (mCurrentNotification != null)
-                delay(NOTIFICATIONS_THRESHOLD)
+                delay(notificationsThreshold)
 
             var worker = GlobalScope.async(Dispatchers.Default) {
                 return@async GMapsNotification(
