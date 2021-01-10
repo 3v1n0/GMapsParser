@@ -17,7 +17,7 @@ import java.time.LocalTime
 
 object LocalTimeSerializer : KSerializer<LocalTime> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
-        "LocalTime",
+        LocalTime::class.java.name,
         PrimitiveKind.INT
     )
     override fun serialize(encoder: Encoder, value: LocalTime) = encoder.encodeInt(value.toSecondOfDay())
@@ -28,7 +28,7 @@ object LocalTimeSerializer : KSerializer<LocalTime> {
 
 object LocalDateSerializer : KSerializer<LocalDate> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
-        "LocalDate",
+        LocalDate::class.java.name,
         PrimitiveKind.LONG
     )
     override fun serialize(encoder: Encoder, value: LocalDate) = encoder.encodeLong(value.toEpochDay())
@@ -37,7 +37,7 @@ object LocalDateSerializer : KSerializer<LocalDate> {
 
 object DurationSerializer : KSerializer<Duration> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
-        "Duration",
+        Duration::class.java.name,
         PrimitiveKind.LONG
     )
     override fun serialize(encoder: Encoder, value: Duration) = encoder.encodeLong(value.toMillis())
@@ -46,7 +46,7 @@ object DurationSerializer : KSerializer<Duration> {
 
 object BitmapBase64Serializer : KSerializer<Bitmap> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
-        "Bitmap",
+        Bitmap::class.java.name,
         PrimitiveKind.STRING
     )
     override fun serialize(encoder: Encoder, value: Bitmap) {
