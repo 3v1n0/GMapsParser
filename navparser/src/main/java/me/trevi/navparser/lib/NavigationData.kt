@@ -79,6 +79,20 @@ data class NavigationIcon(
 }
 
 @Parcelize @Serializable
+data class NavigationTimestamp(
+    var timestamp : Long = 0,
+) : Parcelable {
+    override fun equals(other: Any?): Boolean {
+        /* We don't care about changes on the timestamp, so we always return true if same type */
+        return other is NavigationTimestamp
+    }
+
+    override fun hashCode(): Int {
+        return timestamp.hashCode()
+    }
+}
+
+@Parcelize @Serializable
 data class NavigationData(
     var isRerouting: Boolean = false,
     var canStop: Boolean = false,
@@ -87,6 +101,7 @@ data class NavigationData(
     var remainingDistance: NavigationDistance = NavigationDistance(),
     var eta: NavigationTime = NavigationTime(),
     var finalDirection : String? = null,
+    var postTime : NavigationTimestamp = NavigationTimestamp(),
 ) : Parcelable {
     fun isValid(): Boolean {
         return isRerouting ||

@@ -7,15 +7,16 @@
 
 package me.trevi.navparser.lib
 
+import android.app.Notification
 import android.content.Context
 import android.service.notification.StatusBarNotification
 import android.widget.Button
 
 open class NavigationNotification(cx: Context, sbn: StatusBarNotification) {
     protected val TAG = this.javaClass.simpleName
-    protected val mNotification = sbn.notification
+    protected val mNotification : Notification = sbn.notification
     protected val mCx = cx
-    protected var mAppSrcCx = mCx.createPackageContext(sbn.packageName,
+    protected var mAppSrcCx: Context = mCx.createPackageContext(sbn.packageName,
         Context.CONTEXT_IGNORE_SECURITY
     )
 
@@ -23,6 +24,10 @@ open class NavigationNotification(cx: Context, sbn: StatusBarNotification) {
         private set
     var stopButton : Button? = null
         protected set
+
+    init {
+        navigationData.postTime = NavigationTimestamp(sbn.postTime)
+    }
 
     fun close() {
         stopButton?.callOnClick()
