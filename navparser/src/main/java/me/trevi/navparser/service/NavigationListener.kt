@@ -29,8 +29,7 @@ open class NavigationListener : NotificationListenerService() {
     protected var enabled : Boolean
         get() = mEnabled
         set(value) {
-            mEnabled = value
-            if (mEnabled)
+            if (value.also { mEnabled = it })
                 checkActiveNotifications()
             else
                 mCurrentNotification = null
@@ -60,7 +59,7 @@ open class NavigationListener : NotificationListenerService() {
         this.activeNotifications.forEach { sbn -> onNotificationPosted(sbn) }
     }
 
-    protected fun isGoogleNotification(sbn: StatusBarNotification?): Boolean {
+    private fun isGoogleNotification(sbn: StatusBarNotification?): Boolean {
         if (!mEnabled)
             return false
 
@@ -79,7 +78,7 @@ open class NavigationListener : NotificationListenerService() {
     protected open fun onNavigationNotificationRemoved(navNotification : NavigationNotification) {
     }
 
-    protected fun handleGoogleNotification(sbn: StatusBarNotification) {
+    private fun handleGoogleNotification(sbn: StatusBarNotification) {
         mLastNotification = sbn;
 
         if (mNotificationParserCoroutine != null && mNotificationParserCoroutine!!.isActive)
@@ -89,7 +88,7 @@ open class NavigationListener : NotificationListenerService() {
             if (mCurrentNotification != null)
                 delay(notificationsThreshold)
 
-            var worker = GlobalScope.async(Dispatchers.Default) {
+            val worker = GlobalScope.async(Dispatchers.Default) {
                 return@async GMapsNotification(
                     this@NavigationListener.applicationContext,
                     mLastNotification
@@ -105,7 +104,7 @@ open class NavigationListener : NotificationListenerService() {
                     onNavigationNotificationAdded(mapNotification)
                     updated = true
                 } else {
-                    updated = !lastNotification.navigationData.equals(mapNotification.navigationData)
+                    updated = lastNotification.navigationData != mapNotification.navigationData
                     Log.v(TAG, "Notification is different than previous: ${updated}")
                 }
 

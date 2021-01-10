@@ -206,7 +206,7 @@ class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNot
         Log.d(TAG, "Navigation time split in ${timeParts}")
 
         if (timeParts.size != 3)
-            throw(UnknownFormatConversionException("Impossible to parse navigation time ${time}"))
+            throw(UnknownFormatConversionException("Impossible to parse navigation time $time"))
 
         val duration = timeParts[0]
         val distance = timeParts[1]
