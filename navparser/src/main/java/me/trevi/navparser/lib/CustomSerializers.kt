@@ -55,7 +55,7 @@ object BitmapBase64Serializer : KSerializer<Bitmap> {
         encoder.encodeString(Base64.encodeToString(stream.toByteArray(), Base64.DEFAULT))
     }
     override fun deserialize(decoder: Decoder): Bitmap {
-        val decoded = decoder.decodeString()
-        return BitmapFactory.decodeByteArray(Base64.decode(decoded, 0), 0, decoded.length)
+        val decoded = Base64.decode(decoder.decodeString(), 0)
+        return BitmapFactory.decodeByteArray(decoded, 0, decoded.size)
     }
 }
