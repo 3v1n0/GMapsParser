@@ -11,10 +11,13 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.serializer
+import kotlinx.serialization.json.*
 import java.io.ByteArrayOutputStream
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlin.reflect.KType
+import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.starProjectedType
 
 @Serializable
@@ -77,8 +80,7 @@ object BitmapSerializer : KSerializer<Bitmap> {
     override val descriptor: SerialDescriptor = BitmapSerialDescriptor.serializer().descriptor
     override fun serialize(encoder: Encoder, value: Bitmap) {
         val stream = ByteArrayOutputStream()
-        val usingJson = encoder.javaClass.interfaces.find {
-            it.name == "kotlinx.serialization.json.JsonEncoder" } != null
+        val usingJson = encoder is JsonEncoder
         value.compress(Bitmap.CompressFormat.PNG, 90, stream)
         stream.toByteArray().also { byteArray ->
             BitmapSerialDescriptor(value.width, value.height, value.hashCode(),
@@ -89,10 +91,8 @@ object BitmapSerializer : KSerializer<Bitmap> {
         }
     }
     override fun deserialize(decoder: Decoder): Bitmap {
-        val usingJson = decoder.javaClass.interfaces.find {
-            it.name == "kotlinx.serialization.json.JsonDecoder" } != null
         decoder.decodeSerializableValue(BitmapSerialDescriptor.serializer()).also {
-            val byteArray = if (usingJson) Base64.decode(it.base64, 0) else it.byteArray!!
+            val byteArray = if (decoder is JsonDecoder) Base64.decode(it.base64, 0) else it.byteArray!!
             return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
         }
     }
@@ -110,40 +110,109 @@ object NoneType
 
 object AnyValueSerializer : KSerializer<Any?> {
     override val descriptor : SerialDescriptor = AnyValueSurrogate.serializer().descriptor
+
     override fun serialize(encoder: Encoder, value: Any?) {
-        val strType = if (value != null) value::class.java.name else NoneType::class.java.name
-        val composite = encoder.beginCollection(descriptor, 2)
-        composite.encodeStringElement(descriptor, 0, strType)
-        if (value != null)
-            composite.encodeSerializableElement(descriptor, 1, serializer(value::class.starProjectedType), value)
-        else
-            composite.encodeSerializableElement(descriptor, 1, serializer<NoneType?>(), null)
-        composite.endStructure(descriptor)
+        if (value != null) {
+            val valueClass = value::class
+            val valueType = valueClass.starProjectedType
+            val valueSerializer = serializer(valueType)
+
+            if (encoder is JsonEncoder && isTypePrimitive(valueType)) {
+                encoder.encodeJsonElement(Json.encodeToJsonElement(valueSerializer, value))
+            } else {
+                /* Would be nice to use valueSerializer.descriptor.serialName,
+                 * but how to deserialize that to a type? */
+                val composite = encoder.beginCollection(descriptor, 2)
+                composite.encodeSerializableElement(descriptor, 0, serializer(), valueClass.java.name)
+                composite.encodeSerializableElement(descriptor, 1, valueSerializer, value)
+                composite.endStructure(descriptor)
+            }
+        } else {
+            if (encoder is JsonEncoder) {
+                encoder.encodeJsonElement(JsonNull)
+            } else {
+                val composite = encoder.beginCollection(descriptor, 2)
+                composite.encodeSerializableElement(descriptor, 1, serializer<NoneType?>(), null)
+                composite.endStructure(descriptor)
+            }
+        }
     }
 
-    override fun deserialize(decoder: Decoder): Any? {
-        val composite = decoder.beginStructure(descriptor)
-        var index = composite.decodeElementIndex(descriptor)
-        if (index == CompositeDecoder.DECODE_DONE)
-            return null
+    private fun isTypePrimitive(type : KType) : Boolean {
+        /* This can be replaced when using experimental API (via @ExperimentalSerializationApi) with:
+         *  valueSerializer.descriptor.kind is PrimitiveKind */
+        if (type.isSubtypeOf(Number::class.starProjectedType))
+            return true
 
-        val strType = composite.decodeStringElement(descriptor, index)
-        if (strType.isEmpty())
-            throw SerializationException("Unknown serialization type")
+        if (type.isSubtypeOf(String::class.starProjectedType))
+            return true
 
-        index = composite.decodeElementIndex(descriptor).also {
-            if (it != index + 1)
-                throw SerializationException("Unexpected element index!")
-        }
+        if (type.isSubtypeOf(Boolean::class.starProjectedType))
+            return true
 
-        val valSerializer = try {
+        return false
+    }
+
+    private fun getSerializerForTypeName(strType : String) : KSerializer<*> {
+        return try {
             serializer(Class.forName(strType).kotlin.starProjectedType)
         } catch (e: ClassNotFoundException) {
             throw SerializationException(e.message)
         }
-        val value = composite.decodeSerializableElement(descriptor, index, valSerializer)
-        composite.endStructure(descriptor)
+    }
 
-        return value
+    override fun deserialize(decoder: Decoder): Any? {
+        if (decoder is JsonDecoder) {
+            val element = decoder.decodeJsonElement()
+            if (element is JsonNull)
+                return null
+
+            if (element is JsonPrimitive) {
+                if (element.isString)
+                    return element.content
+
+                return try {
+                    element.boolean
+                } catch (e: Throwable) {
+                    try {
+                        element.long
+                    } catch (e: Throwable) {
+                        element.double
+                    }
+                }
+            } else if (element is JsonObject && "type" in element && "value" in element) {
+                element["type"].also { type ->
+                    if (type is JsonPrimitive && type.isString) {
+                        val valueSerializer = getSerializerForTypeName(type.content)
+                        element["value"].also { value ->
+                            if (value is JsonObject)
+                                return Json.decodeFromJsonElement(valueSerializer, value)
+                        }
+                    }
+                }
+            }
+            throw SerializationException("Invalid Json element $element")
+        } else {
+            val composite = decoder.beginStructure(descriptor)
+            var index = composite.decodeElementIndex(descriptor)
+            if (index == CompositeDecoder.DECODE_DONE)
+                return null
+
+            val strType = composite.decodeStringElement(descriptor, index)
+            if (strType.isEmpty())
+                throw SerializationException("Unknown serialization type")
+
+            index = composite.decodeElementIndex(descriptor).also {
+                if (it != index + 1)
+                    throw SerializationException("Unexpected element index!")
+            }
+
+            getSerializerForTypeName(strType).also { serializer ->
+                composite.decodeSerializableElement(descriptor, index, serializer).also {
+                    composite.endStructure(descriptor)
+                    return it
+                }
+            }
+        }
     }
 }
