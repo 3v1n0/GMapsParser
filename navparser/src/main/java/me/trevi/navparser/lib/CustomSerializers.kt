@@ -73,31 +73,39 @@ object DurationSerializer : KSerializer<Duration> {
 data class BitmapSerialDescriptor(
     val width : Int,
     val height : Int,
-    val hashCode : Int,
-    val base64 : String?,
+    val hashCode : Int)
+{
+    var base64 : String? = null
     @ByteString
-    val byteArray : ByteArray?)
+    var byteArray : ByteArray? = null
 
-object BitmapSerializer : KSerializer<Bitmap> {
-    override val descriptor: SerialDescriptor = BitmapSerialDescriptor.serializer().descriptor
-    override fun serialize(encoder: Encoder, value: Bitmap) {
+    constructor(bitmap : Bitmap, useBase64 : Boolean)
+            : this(bitmap.width, bitmap.height, bitmap.hashCode()) {
         val stream = ByteArrayOutputStream()
-        val usingJson = encoder is JsonEncoder
-        value.compress(Bitmap.CompressFormat.PNG, 90, stream)
-        stream.toByteArray().also { byteArray ->
-            BitmapSerialDescriptor(value.width, value.height, value.hashCode(),
-                if (usingJson) Base64.encodeToString(byteArray, Base64.DEFAULT) else null,
-                if (!usingJson) byteArray else null).also {
-                encoder.encodeSerializableValue(serializer(), it)
-            }
+        bitmap.compress(Bitmap.CompressFormat.PNG, 90, stream)
+        stream.toByteArray().also {
+            if (useBase64)
+                base64 = Base64.encodeToString(it, Base64.DEFAULT)
+            else
+                byteArray = it
         }
     }
-    override fun deserialize(decoder: Decoder): Bitmap {
-        decoder.decodeSerializableValue(BitmapSerialDescriptor.serializer()).also {
-            val byteArray = if (decoder is JsonDecoder) Base64.decode(it.base64, 0) else it.byteArray!!
+
+    fun decode(fromBase64 : Boolean) : Bitmap {
+        (if (fromBase64) Base64.decode(base64, 0) else byteArray!!).also { byteArray ->
             return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
         }
     }
+}
+
+object BitmapSerializer : KSerializer<Bitmap> {
+    override val descriptor: SerialDescriptor = BitmapSerialDescriptor.serializer().descriptor
+    override fun serialize(encoder: Encoder, value: Bitmap) =
+        encoder.encodeSerializableValue(serializer(),
+            BitmapSerialDescriptor(value, useBase64 = encoder is JsonEncoder))
+    override fun deserialize(decoder: Decoder): Bitmap =
+        decoder.decodeSerializableValue(BitmapSerialDescriptor.serializer()).decode(
+            decoder is JsonDecoder)
 }
 
 @Serializable
