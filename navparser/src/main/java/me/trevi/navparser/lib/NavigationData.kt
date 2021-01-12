@@ -143,7 +143,13 @@ data class NavigationData(
 
         return diff
     }
+
+    fun diff(other : NavigationData) : NavigationDataDiff = NavigationDataDiff(diffMap(other))
 }
+
+@Serializable
+data class NavigationDataDiff(
+    val changedValues : Map<String, @Serializable(with = AnyValueSerializer::class) Any?>)
 
 data class LocaleInfo(val locale : Locale, val isRtl : Boolean = false)
 
