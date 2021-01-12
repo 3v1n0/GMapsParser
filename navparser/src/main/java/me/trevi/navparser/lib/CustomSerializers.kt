@@ -3,19 +3,19 @@ package me.trevi.navparser.lib
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.encoding.encodeStructure
 import kotlinx.serialization.serializer
 import java.io.ByteArrayOutputStream
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
+import kotlin.reflect.full.starProjectedType
 
 @Serializable
 data class LocalTimeSerialDescriptor(val hour : Byte, val minute : Byte, val second : Byte)
@@ -95,5 +95,55 @@ object BitmapSerializer : KSerializer<Bitmap> {
             val byteArray = if (usingJson) Base64.decode(it.base64, 0) else it.byteArray!!
             return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
         }
+    }
+}
+
+@Serializable
+data class AnyValueSurrogate(
+    val type : String,
+    @Contextual
+    val value : Any?
+)
+
+@Serializable
+object NoneType
+
+object AnyValueSerializer : KSerializer<Any?> {
+    override val descriptor : SerialDescriptor = AnyValueSurrogate.serializer().descriptor
+    override fun serialize(encoder: Encoder, value: Any?) {
+        val strType = if (value != null) value::class.java.name else NoneType::class.java.name
+        val composite = encoder.beginCollection(descriptor, 2)
+        composite.encodeStringElement(descriptor, 0, strType)
+        if (value != null)
+            composite.encodeSerializableElement(descriptor, 1, serializer(value::class.starProjectedType), value)
+        else
+            composite.encodeSerializableElement(descriptor, 1, serializer<NoneType?>(), null)
+        composite.endStructure(descriptor)
+    }
+
+    override fun deserialize(decoder: Decoder): Any? {
+        val composite = decoder.beginStructure(descriptor)
+        var index = composite.decodeElementIndex(descriptor)
+        if (index == CompositeDecoder.DECODE_DONE)
+            return null
+
+        val strType = composite.decodeStringElement(descriptor, index)
+        if (strType.isEmpty())
+            throw SerializationException("Unknown serialization type")
+
+        index = composite.decodeElementIndex(descriptor).also {
+            if (it != index + 1)
+                throw SerializationException("Unexpected element index!")
+        }
+
+        val valSerializer = try {
+            serializer(Class.forName(strType).kotlin.starProjectedType)
+        } catch (e: ClassNotFoundException) {
+            throw SerializationException(e.message)
+        }
+        val value = composite.decodeSerializableElement(descriptor, index, valSerializer)
+        composite.endStructure(descriptor)
+
+        return value
     }
 }
