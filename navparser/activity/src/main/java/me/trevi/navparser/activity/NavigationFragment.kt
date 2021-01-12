@@ -1,4 +1,4 @@
-package me.trevi.navparser_activity
+package me.trevi.navparser.activity
 
 import android.os.Bundle
 import android.text.format.DateFormat

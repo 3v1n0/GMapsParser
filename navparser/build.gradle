@@ -67,7 +67,7 @@ afterEvaluate {
                 from components.debug
 
                 groupId = "$gmaps_parser_groupId"
-                artifactId = 'navparser-debug'
+                artifactId = 'navparser.debug'
                 version = "$gmaps_parser_version"
                 alias true
             }

@@ -13,7 +13,7 @@ pluginManagement {
     }
 }
 
-include ':navparser_activity'
 include ':navparser'
+include ':navparser:activity'
 include ':app'
 rootProject.name = "GMaps Parser"
