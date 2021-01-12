@@ -60,7 +60,7 @@ data class NavigationTime(
 
 @Parcelize @Serializable
 data class NavigationIcon(
-    @Serializable(with = BitmapBase64Serializer::class)
+    @Serializable(with = BitmapSerializer::class)
     val bitmap: Bitmap? = null,
     ) : Parcelable, AutoCloseable {
     override fun equals(other: Any?): Boolean {

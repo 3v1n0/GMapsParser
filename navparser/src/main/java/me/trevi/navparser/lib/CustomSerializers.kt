@@ -70,25 +70,30 @@ data class BitmapSerialDescriptor(
     val width : Int,
     val height : Int,
     val hashCode : Int,
-    val base64 : String)
+    val base64 : String?,
+    val byteArray : ByteArray?)
 
-object BitmapBase64Serializer : KSerializer<Bitmap> {
+object BitmapSerializer : KSerializer<Bitmap> {
     override val descriptor: SerialDescriptor = BitmapSerialDescriptor.serializer().descriptor
     override fun serialize(encoder: Encoder, value: Bitmap) {
         val stream = ByteArrayOutputStream()
+        val usingJson = encoder.javaClass.interfaces.find {
+            it.name == "kotlinx.serialization.json.JsonEncoder" } != null
         value.compress(Bitmap.CompressFormat.PNG, 90, stream)
         stream.toByteArray().also { byteArray ->
             BitmapSerialDescriptor(value.width, value.height, value.hashCode(),
-                Base64.encodeToString(byteArray, Base64.DEFAULT)).also {
+                if (usingJson) Base64.encodeToString(byteArray, Base64.DEFAULT) else null,
+                if (!usingJson) byteArray else null).also {
                 encoder.encodeSerializableValue(serializer(), it)
             }
         }
     }
     override fun deserialize(decoder: Decoder): Bitmap {
+        val usingJson = decoder.javaClass.interfaces.find {
+            it.name == "kotlinx.serialization.json.JsonDecoder" } != null
         decoder.decodeSerializableValue(BitmapSerialDescriptor.serializer()).also {
-            Base64.decode(it.base64, 0).also { byteArray ->
-                return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-            }
+            val byteArray = if (usingJson) Base64.decode(it.base64, 0) else it.byteArray!!
+            return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
         }
     }
 }
