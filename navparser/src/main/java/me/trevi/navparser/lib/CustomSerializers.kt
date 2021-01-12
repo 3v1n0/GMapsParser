@@ -65,18 +65,30 @@ object DurationSerializer : KSerializer<Duration> {
     override fun deserialize(decoder: Decoder): Duration = Duration.ofSeconds(decoder.decodeInt().toLong())
 }
 
+@Serializable
+data class BitmapSerialDescriptor(
+    val width : Int,
+    val height : Int,
+    val hashCode : Int,
+    val base64 : String)
+
 object BitmapBase64Serializer : KSerializer<Bitmap> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
-        Bitmap::class.java.name,
-        PrimitiveKind.STRING
-    )
+    override val descriptor: SerialDescriptor = BitmapSerialDescriptor.serializer().descriptor
     override fun serialize(encoder: Encoder, value: Bitmap) {
         val stream = ByteArrayOutputStream()
         value.compress(Bitmap.CompressFormat.PNG, 90, stream)
-        encoder.encodeString(Base64.encodeToString(stream.toByteArray(), Base64.DEFAULT))
+        stream.toByteArray().also { byteArray ->
+            BitmapSerialDescriptor(value.width, value.height, value.hashCode(),
+                Base64.encodeToString(byteArray, Base64.DEFAULT)).also {
+                encoder.encodeSerializableValue(serializer(), it)
+            }
+        }
     }
     override fun deserialize(decoder: Decoder): Bitmap {
-        val decoded = Base64.decode(decoder.decodeString(), 0)
-        return BitmapFactory.decodeByteArray(decoded, 0, decoded.size)
+        decoder.decodeSerializableValue(BitmapSerialDescriptor.serializer()).also {
+            Base64.decode(it.base64, 0).also { byteArray ->
+                return BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
+            }
+        }
     }
 }
