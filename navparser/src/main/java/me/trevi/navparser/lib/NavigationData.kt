@@ -127,6 +127,22 @@ data class NavigationData(
 
         return map
     }
+
+    fun diffMap(other: NavigationData) : Map<String, Any?> {
+        val diff = emptyMap<String, Any?>().toMutableMap()
+
+        this::class.members.forEach { m ->
+            if (m is KProperty && m.visibility == KVisibility.PUBLIC && m.isFinal &&
+                    m.annotations.find { it is Mutable } == null) {
+                m.getter.call(other).also {
+                    if (it != m.getter.call(this))
+                        diff[m.name] = it
+                }
+            }
+        }
+
+        return diff
+    }
 }
 
 data class LocaleInfo(val locale : Locale, val isRtl : Boolean = false)
