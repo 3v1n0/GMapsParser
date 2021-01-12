@@ -18,6 +18,8 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.time.*
 import java.util.*
+import kotlin.reflect.KProperty
+import kotlin.reflect.KVisibility
 
 enum class DistanceUnit {
     KM,
@@ -108,6 +110,17 @@ data class NavigationData(
                 (nextDirection.localeString != null &&
                         remainingDistance.localeString != null &&
                         eta.localeString != null)
+    }
+
+    fun asMap() : Map<String, Any?> {
+        val map = emptyMap<String, Any?>().toMutableMap()
+
+        this::class.members.forEach { m ->
+            if (m is KProperty && m.visibility == KVisibility.PUBLIC && m.isFinal)
+                map[m.name] = m.getter.call(this)
+        }
+
+        return map
     }
 }
 
