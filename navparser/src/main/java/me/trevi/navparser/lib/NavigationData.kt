@@ -29,6 +29,9 @@ enum class DistanceUnit {
     INVALID,
 }
 
+@Target(AnnotationTarget.VALUE_PARAMETER)
+annotation class Mutable
+
 @Parcelize @Serializable
 data class NavigationDistance(
     val localeString: String? = null,
@@ -82,6 +85,7 @@ data class NavigationIcon(
 
 @Parcelize @Serializable
 data class NavigationTimestamp(
+    @Mutable
     var timestamp : Long = 0,
 ) : Parcelable {
     override fun equals(other: Any?): Boolean {
@@ -103,6 +107,7 @@ data class NavigationData(
     var remainingDistance: NavigationDistance = NavigationDistance(),
     var eta: NavigationTime = NavigationTime(),
     var finalDirection : String? = null,
+    @Mutable
     var postTime : NavigationTimestamp = NavigationTimestamp(),
 ) : Parcelable {
     fun isValid(): Boolean {
