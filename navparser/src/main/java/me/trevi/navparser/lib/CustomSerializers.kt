@@ -61,8 +61,8 @@ object DurationSerializer : KSerializer<Duration> {
         Duration::class.java.name,
         PrimitiveKind.LONG
     )
-    override fun serialize(encoder: Encoder, value: Duration) = encoder.encodeLong(value.toMillis())
-    override fun deserialize(decoder: Decoder): Duration = Duration.ofMillis(decoder.decodeLong())
+    override fun serialize(encoder: Encoder, value: Duration) = encoder.encodeLong(value.toMillis() / 1000)
+    override fun deserialize(decoder: Decoder): Duration = Duration.ofSeconds(decoder.decodeLong())
 }
 
 object BitmapBase64Serializer : KSerializer<Bitmap> {
