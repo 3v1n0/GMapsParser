@@ -59,10 +59,10 @@ object LocalDateSerializer : KSerializer<LocalDate> {
 object DurationSerializer : KSerializer<Duration> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(
         Duration::class.java.name,
-        PrimitiveKind.LONG
+        PrimitiveKind.INT
     )
-    override fun serialize(encoder: Encoder, value: Duration) = encoder.encodeLong(value.toMillis() / 1000)
-    override fun deserialize(decoder: Decoder): Duration = Duration.ofSeconds(decoder.decodeLong())
+    override fun serialize(encoder: Encoder, value: Duration) = encoder.encodeInt((value.toMillis() / 1000).toInt())
+    override fun deserialize(decoder: Decoder): Duration = Duration.ofSeconds(decoder.decodeInt().toLong())
 }
 
 object BitmapBase64Serializer : KSerializer<Bitmap> {
