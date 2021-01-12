@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Base64
 import kotlinx.serialization.*
+import kotlinx.serialization.cbor.ByteString
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -74,6 +75,7 @@ data class BitmapSerialDescriptor(
     val height : Int,
     val hashCode : Int,
     val base64 : String?,
+    @ByteString
     val byteArray : ByteArray?)
 
 object BitmapSerializer : KSerializer<Bitmap> {
