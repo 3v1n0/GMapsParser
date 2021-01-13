@@ -33,7 +33,7 @@ class MainActivity : NavParserActivity() {
     }
 
     private fun toggleFabVisbility() {
-        if (haveNotificationsAccess() && !isNavigationActive)
+        if (notificationAccess && !isNavigationActive)
             binding.fab.show()
         else
             binding.fab.hide()

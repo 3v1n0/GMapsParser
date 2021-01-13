@@ -38,6 +38,7 @@ class NavigationDataModel : ViewModel() {
 open class NavParserActivity : AppCompatActivity() {
     private var mSnackbar : Snackbar? = null;
     private val mNavDataModel: NavigationDataModel by viewModels()
+    protected var notificationAccess = false
     val isNavigationActive get() = getNavController().currentDestination?.id == R.id.NavigationFragment
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -50,12 +51,8 @@ open class NavParserActivity : AppCompatActivity() {
         Log.d("${this.javaClass.simpleName} created")
     }
 
-    protected fun haveNotificationsAccess() : Boolean {
-        val notificationAccess = Settings.Secure.getString(
-            this.contentResolver, "enabled_notification_listeners"
-        )
-
-        return NavigationListenerEmitter::class.qualifiedName.toString() in notificationAccess
+    protected fun checkNotificationsAccess() {
+        startService(serviceIntent(CHECK_NOTIFICATIONS_ACCESS))
     }
 
     private fun serviceIntent(action: String) : Intent {
@@ -63,8 +60,10 @@ open class NavParserActivity : AppCompatActivity() {
     }
 
     fun stopNavigation() {
-        Log.d("stopNavigation ${serviceIntent(STOP_NAVIGATION)}")
-        startService(serviceIntent(STOP_NAVIGATION))
+        serviceIntent(STOP_NAVIGATION).also {
+            Log.d("stopNavigation $it")
+            startService(it)
+        }
     }
 
     private fun setServiceListenerIntent(pendingIntent: PendingIntent?) {
@@ -72,10 +71,12 @@ open class NavParserActivity : AppCompatActivity() {
     }
 
     private fun startServiceListener() {
+        Log.d("Start Service Listener")
         setServiceListenerIntent(createPendingResult(100, Intent(), 0))
     }
 
     fun stopServiceListener() {
+        Log.d("Stopping Service Listener")
         setServiceListenerIntent(null)
     }
 
@@ -119,6 +120,18 @@ open class NavParserActivity : AppCompatActivity() {
         Log.d("Got activity result: $intent, ${intent?.extras}, ${intent?.action}")
         when (intent?.action) {
 
+            NOTIFICATIONS_ACCESS_RESULT -> {
+                intent.getBooleanExtra(NOTIFICATIONS_ACCESS_RESULT, false).also {
+                    notificationAccess = it
+
+                    if (!notificationAccess) {
+                        gotoFragment(R.id.InitFragment)
+                        showMissingNotificationsAccessSnackbar()
+                        Log.e("No notification access for ${NavigationListenerEmitter::class.qualifiedName}")
+                    }
+                }
+            }
+
             NAVIGATION_DATA_UPDATED -> {
                 gotoFragment(R.id.NavigationFragment)
 
@@ -154,12 +167,7 @@ open class NavParserActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
 
-        if (haveNotificationsAccess()) {
-            startServiceListener()
-        } else {
-            gotoFragment(R.id.InitFragment)
-            showMissingNotificationsAccessSnackbar()
-            Log.e("No notification access for ${NavigationListenerEmitter::class.qualifiedName}")
-        }
+        startServiceListener()
+        checkNotificationsAccess()
     }
 }
