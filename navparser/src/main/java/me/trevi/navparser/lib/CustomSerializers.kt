@@ -291,3 +291,36 @@ object AnySerializableOnlyValueSerializer : KSerializer<Any?> {
         throw NotImplementedError("Deserialization not implemented for Any type")
     }
 }
+
+/* Serializer only for a container of Map<String, Any?> values without a root element */
+
+object MapStringAnyValueSerializer : KSerializer<Map<String, Any?>> {
+    override val descriptor : SerialDescriptor = serializer<Map<String, AnySerializableOnlyValue>>().descriptor
+    override fun serialize(encoder: Encoder, value: Map<String, Any?>) {
+        val composite = encoder.beginCollection(descriptor, value.size)
+        var index = 0
+        value.forEach { (k, v) ->
+            composite.encodeSerializableElement(descriptor, index++, serializer(), k)
+            if (v != null) {
+                composite.encodeSerializableElement(descriptor, index++, serializer(v::class.starProjectedType), v)
+            } else {
+                composite.encodeSerializableElement(descriptor, index++, serializer<NoneType?>(), null)
+            }
+        }
+        composite.endStructure(descriptor)
+    }
+    override fun deserialize(decoder: Decoder): Map<String, Any?> {
+        throw NotImplementedError()
+    }
+}
+
+object MapStringAnySerializableOnlySerializer : KSerializer<MapStringAnySerializableOnly> {
+    override val descriptor : SerialDescriptor = MapStringAnyValueSerializer.descriptor
+    override fun serialize(encoder: Encoder, value: MapStringAnySerializableOnly) =
+        MapStringAnyValueSerializer.serialize(encoder, value.entries)
+    override fun deserialize(decoder: Decoder): MapStringAnySerializableOnly =
+        MapStringAnySerializableOnly(MapStringAnyValueSerializer.deserialize(decoder))
+}
+
+@Serializable(with = MapStringAnySerializableOnlySerializer::class)
+data class MapStringAnySerializableOnly(val entries : Map<String, Any?> = emptyMap())
