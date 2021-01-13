@@ -27,6 +27,20 @@ val SOCKET_PORTS: IntArray = intArrayOf(35456, 12315, 57535)
 open class NavigationWebSocket : NavigationListener() {
     lateinit var mServer : NettyApplicationEngine
     private var mConsumer : DefaultWebSocketSession? = null /* FIXME: Support multiple consumers */
+    private var mSocketPorts = SOCKET_PORTS
+
+    protected var socketPorts : IntArray
+        get() = mSocketPorts
+        set (value) {
+            mSocketPorts = value
+            if (mSocketPorts.isEmpty())
+                mSocketPorts = SOCKET_PORTS
+            else {
+                if (this::mServer.isInitialized)
+                    mServer.stop(0, 0, TimeUnit.MILLISECONDS)
+                tryRunServer()
+            }
+        }
 
     override fun onCreate() {
         super.onCreate()
@@ -163,7 +177,7 @@ open class NavigationWebSocket : NavigationListener() {
     }
 
     private fun tryRunServer() {
-        SOCKET_PORTS.forEach {
+        socketPorts.forEach {
             try {
                 Log.d("Setting up server?! $it")
                 setupServer(it)
