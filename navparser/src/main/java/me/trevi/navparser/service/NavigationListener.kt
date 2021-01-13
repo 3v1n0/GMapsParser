@@ -30,6 +30,8 @@ open class NavigationListener : NotificationListenerService() {
     protected var enabled : Boolean
         get() = mEnabled
         set(value) {
+            if (value == mEnabled)
+                return
             if (value.also { mEnabled = it })
                 checkActiveNotifications()
             else
