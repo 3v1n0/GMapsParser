@@ -20,12 +20,14 @@ import me.trevi.navparser.websocket.*
 import me.trevi.navparser.websocket.proto.*
 import java.time.Duration
 import java.util.concurrent.TimeUnit
+import kotlin.reflect.full.starProjectedType
 import timber.log.Timber as Log
 
 val SOCKET_PORTS: IntArray = intArrayOf(35456, 12315, 57535)
 
 open class NavigationWebSocket : NavigationListener() {
     lateinit var mServer : NettyApplicationEngine
+    private var mPrevNavData = NavigationData()
     private var mConsumer : DefaultWebSocketSession? = null /* FIXME: Support multiple consumers */
     private var mSocketPorts = SOCKET_PORTS
 
@@ -68,7 +70,7 @@ open class NavigationWebSocket : NavigationListener() {
         when (req.action) {
             NavProtoAction.resync -> {
                 if (currentNotification != null) {
-                    sendNavigationData(currentNotification!!.navigationData)
+                    sendNavigationData(currentNotification!!.navigationData, forceComplete = true)
                 } else {
                     return NavProtoEvent.newError("No navigation in progress")
                 }
@@ -134,6 +136,7 @@ open class NavigationWebSocket : NavigationListener() {
 
                     try {
                         enabled = true
+                        mPrevNavData = NavigationData()
                         mConsumer = this
 
                         outgoing.send(
@@ -196,6 +199,19 @@ open class NavigationWebSocket : NavigationListener() {
         onNavigationNotificationUpdated(navNotification)
     }
 
+    private fun NavigationData.jsonDiffSerializable(other: NavigationData) : Map<String, JsonElement> {
+        val jsonEncoder = Json{ encodeDefaults = true }
+        val diff = emptyMap<String, JsonElement>().toMutableMap()
+
+        diffMap(other).forEach {
+            diff[it.key] = if (it.value != null)
+                jsonEncoder.encodeToJsonElement(serializer(it.value!!::class.starProjectedType), it.value)
+            else JsonNull
+        }
+
+        return diff
+    }
+
     protected suspend fun sendNavigationEventSuspended(navigationEvent : NavProtoEvent) {
         Log.v("Sending to $mConsumer: $navigationEvent")
 
@@ -211,12 +227,30 @@ open class NavigationWebSocket : NavigationListener() {
         GlobalScope.launch(Dispatchers.Main) { sendNavigationEventSuspended (navigationEvent) }
     }
 
-    private fun sendNavigationData(navigationData: NavigationData) {
-        sendNavigationEvent(
-            NavProtoEvent(
-                NavProtoAction.status,
-                NavProtoNavigation(navigationData))
-        )
+    protected fun sendNavigationData(navigationData: NavigationData, forceComplete: Boolean = false) {
+        if (forceComplete || !mPrevNavData.isValid()) {
+            sendNavigationEvent(
+                NavProtoEvent(
+                    NavProtoAction.status,
+                    NavProtoNavigation(navigationData))
+            )
+            mPrevNavData = navigationData
+        } else {
+            GlobalScope.launch(Dispatchers.Main) {
+                GlobalScope.async(Dispatchers.Default) {
+                    val diff = mPrevNavData.jsonDiffSerializable(navigationData)
+                    return@async if (diff.isNotEmpty()) Json.encodeToJsonElement(diff) else null
+                }.await().also {
+                    if (it != null) {
+                        sendNavigationEventSuspended(
+                            NavProtoEvent(
+                                NavProtoAction.status,
+                                NavProtoNavigationUpdate(it)))
+                        mPrevNavData = navigationData
+                    }
+                }
+            }
+        }
     }
 
     override fun onNavigationNotificationUpdated(navNotification: NavigationNotification) {

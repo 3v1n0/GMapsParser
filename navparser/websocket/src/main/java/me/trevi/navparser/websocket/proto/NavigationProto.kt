@@ -56,6 +56,12 @@ data class NavProtoNavigation(
 ) : NavigationProtoActionType()
 
 @Serializable
+@SerialName("navigationUpdate")
+data class NavProtoNavigationUpdate(
+    val navigationData: JsonElement
+) : NavigationProtoActionType()
+
+@Serializable
 @SerialName("options")
 data class NavProtoNavigationOptions(
     val notificationThreshold : Long
