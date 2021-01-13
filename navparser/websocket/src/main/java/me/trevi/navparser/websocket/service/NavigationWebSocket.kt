@@ -98,19 +98,15 @@ open class NavigationWebSocket : NavigationListener() {
                 handleRequest(req).also { reply ->
                     if (reply != null) {
                         if (reply.action == NavProtoAction.error) {
-                            Log.e("Error handling client request $reply: ${reply.data}")
+                            Log.e("Error handling client request '$req': ${reply.data}")
                         }
-                        mConsumer!!.send(reply.toTextFrame())
+                        sendNavigationEventSuspended(reply)
                     }
                 }
             }
         } catch (e: Throwable) {
-            NavProtoEvent.newError(NavProtoErrorKind.invalid_request,
-                "Failed to handle client request ${frame.readText()}: $e")
-                .also {
-                    Log.e((it.data as NavProtoError).message)
-                    mConsumer!!.send(it.toTextFrame())
-                }
+            sendNavigationEventSuspended(NavProtoEvent.newError(NavProtoErrorKind.invalid_request,
+                "Failed to handle client request ${frame.readText()}: $e"))
         }
     }
 
@@ -126,11 +122,9 @@ open class NavigationWebSocket : NavigationListener() {
             install(Routing) {
                 webSocket("/navigationSocket") {
                     if (mConsumer != null && mConsumer!!.isActive) {
-                        NavProtoEvent.newError(NavProtoErrorKind.not_authorized,
-                            "We've already a client... Refusing new connection").also {
-                            Log.w((it.data as NavProtoError).message)
-                            outgoing.send(it.toTextFrame())
-                        }
+                        sendNavigationEventSuspended(this,  NavProtoEvent.newError(
+                            NavProtoErrorKind.not_authorized,
+                            "We've already a client... Refusing new connection"))
                         close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT,
                             "Another Client is already connected"))
                         return@webSocket
@@ -143,11 +137,11 @@ open class NavigationWebSocket : NavigationListener() {
                         mPrevNavData = NavigationData()
                         mConsumer = this
 
-                        outgoing.send(
+                        sendNavigationEventSuspended(
                             NavProtoEvent(
                                 NavProtoAction.hello,
                                 NavProtoHello("Hello, ready to navigate you!")
-                            ).toTextFrame()
+                            )
                         )
 
                         incoming.consumeEach { frame ->
@@ -161,9 +155,9 @@ open class NavigationWebSocket : NavigationListener() {
                                     return@consumeEach
                                 }
                                 else -> {
-                                    outgoing.send(NavProtoEvent.newError(
+                                    sendNavigationEventSuspended(NavProtoEvent.newError(
                                         NavProtoErrorKind.invalid_request,
-                                        "Frame $frame not handled").toTextFrame())
+                                        "Frame $frame not handled"))
                                 }
                             }
                         }
@@ -217,12 +211,24 @@ open class NavigationWebSocket : NavigationListener() {
         return diff
     }
 
-    protected suspend fun sendNavigationEventSuspended(navigationEvent : NavProtoEvent) {
-        Log.v("Sending to $mConsumer: $navigationEvent")
-
-        if (mConsumer != null && mConsumer!!.isActive) {
-            mConsumer!!.send(navigationEvent.toTextFrame())
+    private suspend fun sendNavigationEventSuspended(client : DefaultWebSocketSession?,
+                                                     navigationEvent : NavProtoEvent) : Boolean {
+        if (navigationEvent.data is NavProtoError) {
+            Log.e("${navigationEvent.data.error}: ${navigationEvent.data.message}")
         } else {
+            Log.v("Sending to $client: $navigationEvent")
+        }
+
+        if (client != null && client.isActive) {
+            client.send(navigationEvent.toTextFrame())
+            return true
+        }
+
+        return false
+    }
+
+    protected suspend fun sendNavigationEventSuspended(navigationEvent : NavProtoEvent) {
+        if (!sendNavigationEventSuspended(mConsumer, navigationEvent)) {
             enabled = false
             mConsumer = null
         }
