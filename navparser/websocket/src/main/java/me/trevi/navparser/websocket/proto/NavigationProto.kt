@@ -6,8 +6,8 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import me.trevi.navparser.lib.MapStringAnySerializableOnly
 import me.trevi.navparser.lib.NavigationData
-import me.trevi.navparser.lib.NavigationDataMap
 
 const val PROTO_VERSION = "1.0"
 
@@ -71,10 +71,11 @@ data class NavProtoNavigation(
     val navigationData: NavigationData
 ) : NavigationProtoActionType()
 
+typealias UntypedNavigationDataDiff = MapStringAnySerializableOnly
 @Serializable
 @SerialName("navigationUpdate")
 data class NavProtoNavigationUpdate(
-    val navigationData: NavigationDataMap
+    val navigationData: UntypedNavigationDataDiff
 ) : NavigationProtoActionType()
 
 @Serializable

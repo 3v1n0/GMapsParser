@@ -11,7 +11,6 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.serialization.*
-import kotlinx.serialization.json.JsonElement
 import me.trevi.navparser.BuildConfig
 import me.trevi.navparser.lib.NavigationData
 import me.trevi.navparser.lib.NavigationNotification
@@ -248,8 +247,8 @@ open class NavigationWebSocket : NavigationListener() {
         } else {
             GlobalScope.launch(Dispatchers.Main) {
                 GlobalScope.async(Dispatchers.Default) {
-                    val diff = mPrevNavData.diff(navigationData)
-                    return@async if (diff.entries.isNotEmpty()) diff else null
+                    val diff = mPrevNavData.diff(navigationData).entries
+                    return@async if (diff.entries.isNotEmpty()) UntypedNavigationDataDiff(diff) else null
                 }.await().also {
                     if (it != null) {
                         sendNavigationEventSuspended(
