@@ -11,7 +11,7 @@ import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.ClosedReceiveChannelException
 import kotlinx.coroutines.channels.consumeEach
 import kotlinx.serialization.*
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.JsonElement
 import me.trevi.navparser.BuildConfig
 import me.trevi.navparser.lib.NavigationData
 import me.trevi.navparser.lib.NavigationNotification
@@ -20,7 +20,6 @@ import me.trevi.navparser.websocket.*
 import me.trevi.navparser.websocket.proto.*
 import java.time.Duration
 import java.util.concurrent.TimeUnit
-import kotlin.reflect.full.starProjectedType
 import timber.log.Timber as Log
 
 val SOCKET_PORTS: IntArray = intArrayOf(35456, 12315, 57535)
@@ -211,19 +210,6 @@ open class NavigationWebSocket : NavigationListener() {
         onNavigationNotificationUpdated(navNotification)
     }
 
-    private fun NavigationData.jsonDiffSerializable(other: NavigationData) : Map<String, JsonElement> {
-        val jsonEncoder = Json{ encodeDefaults = true }
-        val diff = emptyMap<String, JsonElement>().toMutableMap()
-
-        diffMap(other).forEach {
-            diff[it.key] = if (it.value != null)
-                jsonEncoder.encodeToJsonElement(serializer(it.value!!::class.starProjectedType), it.value)
-            else JsonNull
-        }
-
-        return diff
-    }
-
     private suspend fun sendNavigationEventSuspended(client : DefaultWebSocketSession?,
                                                      navigationEvent : NavProtoEvent) : Boolean {
         if (navigationEvent.data is NavProtoError) {
@@ -262,8 +248,8 @@ open class NavigationWebSocket : NavigationListener() {
         } else {
             GlobalScope.launch(Dispatchers.Main) {
                 GlobalScope.async(Dispatchers.Default) {
-                    val diff = mPrevNavData.jsonDiffSerializable(navigationData)
-                    return@async if (diff.isNotEmpty()) Json.encodeToJsonElement(diff) else null
+                    val diff = mPrevNavData.diff(navigationData)
+                    return@async if (diff.entries.isNotEmpty()) diff else null
                 }.await().also {
                     if (it != null) {
                         sendNavigationEventSuspended(
