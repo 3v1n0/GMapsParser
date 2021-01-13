@@ -26,6 +26,7 @@ enum class NavProtoAction {
 enum class NavProtoErrorKind {
     not_authorized,
     no_navigation_in_progres,
+    no_notifications_access,
     invalid_request,
     invalid_action,
     internal,

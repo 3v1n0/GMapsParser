@@ -72,6 +72,12 @@ open class NavigationWebSocket : NavigationListener() {
                 if (currentNotification != null) {
                     sendNavigationData(currentNotification!!.navigationData, forceComplete = true)
                 } else {
+                    if (!haveNotificationsAccess()) {
+                        return NavProtoEvent.newError(
+                            NavProtoErrorKind.no_notifications_access,
+                            "The service has no notifications access"
+                        )
+                    }
                     return NavProtoEvent.newError(NavProtoErrorKind.no_navigation_in_progres,
                         "No navigation in progress")
                 }
@@ -143,6 +149,13 @@ open class NavigationWebSocket : NavigationListener() {
                                 NavProtoHello("Hello, ready to navigate you!")
                             )
                         )
+
+                        if (!haveNotificationsAccess()) {
+                            sendNavigationEventSuspended(NavProtoEvent.newError(
+                                NavProtoErrorKind.no_notifications_access,
+                                "The service has no notifications access"
+                            ))
+                        }
 
                         incoming.consumeEach { frame ->
                             Log.d("Got incoming frame $frame")
