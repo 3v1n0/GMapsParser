@@ -9,7 +9,6 @@ import android.view.ViewGroup
 import androidx.fragment.app.activityViewModels
 import me.trevi.navparser.NavParserActivity
 import me.trevi.navparser.NavigationDataModel
-import me.trevi.navparser.activity.R
 import me.trevi.navparser.activity.databinding.FragmentNavigationBinding
 import me.trevi.navparser.lib.NavigationData
 import java.time.LocalDate
