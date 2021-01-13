@@ -1,3 +1,10 @@
+/* -*- mode: C++; c-basic-offset: 4; indent-tabs-mode: nil; -*- */
+/*
+ * SPDX-License-Identifier: LGPL-3.0-or-later
+ *
+ * Copyright (c) 2020 Marco Trevisan <mail@trevi.me>
+ */
+
 package me.trevi.navparser.lib
 
 import android.graphics.Bitmap
@@ -107,6 +114,8 @@ object BitmapSerializer : KSerializer<Bitmap> {
         decoder.decodeSerializableValue(BitmapSerialDescriptor.serializer()).decode(
             decoder is JsonDecoder)
 }
+
+/* Generic serializer for "Any?" value */
 
 @Serializable
 data class AnyValueSurrogate(
@@ -226,6 +235,8 @@ object AnyValueSerializer : KSerializer<Any?> {
         }
     }
 }
+
+/* Two-way Serializer for a container of Map<String, Any?> values without a root element */
 
 @Serializable(with = AnySerializableValueSerializer::class)
 data class AnySerializableValue(val value : Any?)
