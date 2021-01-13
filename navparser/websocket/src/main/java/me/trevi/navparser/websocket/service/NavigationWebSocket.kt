@@ -151,6 +151,8 @@ open class NavigationWebSocket : NavigationListener() {
                                 NavProtoErrorKind.no_notifications_access,
                                 "The service has no notifications access"
                             ))
+                        } else {
+                            waitForNotificationAsync()
                         }
 
                         mPrevNavData = NavigationData()
@@ -188,6 +190,23 @@ open class NavigationWebSocket : NavigationListener() {
         }
 
         mServer.start()
+    }
+
+    private suspend fun waitForNotificationAsync() {
+        val client = mConsumer
+
+        GlobalScope.launch(Dispatchers.Main) {
+            delay(2500)
+
+            if (!mPrevNavData.isValid()) {
+                sendNavigationEventSuspended(client,
+                    NavProtoEvent.newError(
+                        NavProtoErrorKind.no_navigation_in_progres,
+                        "No navigation in progress"
+                    )
+                )
+            }
+        }
     }
 
     private fun tryRunServer() {
