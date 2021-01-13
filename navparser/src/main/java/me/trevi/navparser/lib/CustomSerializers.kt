@@ -15,6 +15,7 @@ import kotlinx.serialization.cbor.ByteString
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.mapSerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -295,7 +296,10 @@ object AnySerializableOnlyValueSerializer : KSerializer<Any?> {
 /* Serializer only for a container of Map<String, Any?> values without a root element */
 
 object MapStringAnyValueSerializer : KSerializer<Map<String, Any?>> {
-    override val descriptor : SerialDescriptor = serializer<Map<String, AnySerializableOnlyValue>>().descriptor
+    override val descriptor : SerialDescriptor = mapSerialDescriptor(
+        serializer<String>().descriptor,
+        AnySerializableOnlyValueSerializer.descriptor,
+    )
     override fun serialize(encoder: Encoder, value: Map<String, Any?>) {
         val composite = encoder.beginCollection(descriptor, value.size)
         var index = 0
