@@ -32,7 +32,7 @@ open class NavigationListenerEmitter : NavigationListener() {
             SET_INTENT -> {
                 mPendingIntent = intent.getParcelableExtra(PENDING_INTENT)
                 enabled = mPendingIntent != null
-                Log.d("Set pending intent $mPendingIntent: $intent, ${intent.action}")
+                Log.v("Set pending intent $mPendingIntent: $intent, ${intent.action}")
 
                 if (mPendingIntent != null) {
                     mPendingIntent?.send(applicationContext, 200, Intent(INTENT_SET))
