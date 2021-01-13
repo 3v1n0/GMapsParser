@@ -137,8 +137,6 @@ open class NavigationWebSocket : NavigationListener() {
                     Log.d("Connection with peer $this started")
 
                     try {
-                        enabled = true
-                        mPrevNavData = NavigationData()
                         mConsumer = this
 
                         sendNavigationEventSuspended(
@@ -154,6 +152,9 @@ open class NavigationWebSocket : NavigationListener() {
                                 "The service has no notifications access"
                             ))
                         }
+
+                        mPrevNavData = NavigationData()
+                        enabled = true
 
                         incoming.consumeEach { frame ->
                             Log.d("Got incoming frame $frame")
