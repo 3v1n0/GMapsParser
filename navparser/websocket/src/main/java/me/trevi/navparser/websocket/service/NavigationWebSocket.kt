@@ -254,6 +254,9 @@ open class NavigationWebSocket : NavigationListener() {
     }
 
     override fun onNavigationNotificationUpdated(navNotification: NavigationNotification) {
+        if (mConsumer == null)
+            return
+
         Log.v("Sending ${navNotification.navigationData}")
 
         sendNavigationData(navNotification.navigationData)
