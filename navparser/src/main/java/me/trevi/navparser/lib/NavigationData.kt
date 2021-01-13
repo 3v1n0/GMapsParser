@@ -209,11 +209,14 @@ fun timeParser(cx: Context, time: String) : LocalTime {
     if (parsedDate == null)
         throw(UnknownFormatConversionException("Impossible to parse navigation time ${time}"))
 
-    return try {
-        /* We don't care about zones here, as it's the local one */
-        LocalTime.of(parsedDate.hours, parsedDate.minutes)
-    } catch (e : Exception) {
-        throw(UnknownFormatConversionException("Impossible to parse navigation distance ${time}"))
+    Calendar.getInstance(getCurrentLocale(cx).locale).also {
+        return try {
+            /* We don't care about zones here, as it's the local one */
+            it.time = parsedDate
+            LocalTime.of(it.get(Calendar.HOUR_OF_DAY), it.get(Calendar.MINUTE), it.get(Calendar.SECOND))
+        } catch (e : Exception) {
+            throw(UnknownFormatConversionException("Impossible to parse navigation distance ${time}: $e"))
+        }
     }
 }
 
