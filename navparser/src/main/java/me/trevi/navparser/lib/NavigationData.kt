@@ -98,6 +98,8 @@ data class NavigationTimestamp(
     }
 }
 
+typealias NavigationDataMap = MapStringAny
+
 @Parcelize @Serializable
 data class NavigationData(
     var isRerouting: Boolean = false,
@@ -117,7 +119,7 @@ data class NavigationData(
                         eta.localeString != null)
     }
 
-    fun asMap() : Map<String, Any?> {
+    fun asMap() : NavigationDataMap {
         val map = emptyMap<String, Any?>().toMutableMap()
 
         this::class.members.forEach { m ->
@@ -125,7 +127,7 @@ data class NavigationData(
                 map[m.name] = m.getter.call(this)
         }
 
-        return map
+        return NavigationDataMap(map)
     }
 
     fun diffMap(other: NavigationData) : Map<String, Any?> {
@@ -144,12 +146,8 @@ data class NavigationData(
         return diff
     }
 
-    fun diff(other : NavigationData) : NavigationDataDiff = NavigationDataDiff(diffMap(other))
+    fun diff(other : NavigationData) : NavigationDataMap = NavigationDataMap(diffMap(other))
 }
-
-@Serializable
-data class NavigationDataDiff(
-    val changedValues : Map<String, @Serializable(with = AnyValueSerializer::class) Any?>)
 
 data class LocaleInfo(val locale : Locale, val isRtl : Boolean = false)
 
