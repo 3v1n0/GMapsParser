@@ -15,6 +15,8 @@ import timber.log.Timber as Log
 
 const val SET_INTENT = "${BuildConfig.LIBRARY_PACKAGE_NAME}.SET_INTENT"
 const val INTENT_SET = "${BuildConfig.LIBRARY_PACKAGE_NAME}.INTENT_SET"
+const val CHECK_NOTIFICATIONS_ACCESS = "${BuildConfig.LIBRARY_PACKAGE_NAME}.CHECK_NOTIFICATIONS_ACCESS"
+const val NOTIFICATIONS_ACCESS_RESULT = "${BuildConfig.LIBRARY_PACKAGE_NAME}.NOTIFICATIONS_ACCESS_RESULT"
 const val STOP_NAVIGATION = "${BuildConfig.LIBRARY_PACKAGE_NAME}.STOP_NAVIGATION"
 const val NAVIGATION_DATA_UPDATED = "${BuildConfig.LIBRARY_PACKAGE_NAME}.NAVIGATION_DATA_UPDATED"
 const val NAVIGATION_STARTED = "${BuildConfig.LIBRARY_PACKAGE_NAME}.NAVIGATION_STARTED"
@@ -37,6 +39,17 @@ open class NavigationListenerEmitter : NavigationListener() {
                 if (mPendingIntent != null) {
                     mPendingIntent?.send(applicationContext, 200, Intent(INTENT_SET))
                 }
+            }
+
+            CHECK_NOTIFICATIONS_ACCESS -> {
+                if (mPendingIntent == null) {
+                    Log.e("No intent set!")
+                    return START_NOT_STICKY
+                }
+
+                mPendingIntent!!.send(applicationContext, 200,
+                    Intent(NOTIFICATIONS_ACCESS_RESULT).putExtra(NOTIFICATIONS_ACCESS_RESULT,
+                        haveNotificationsAccess()))
             }
 
             STOP_NAVIGATION -> {
