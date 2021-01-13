@@ -164,6 +164,11 @@ open class NavParserActivity : AppCompatActivity() {
         }.show()
     }
 
+    override fun onBackPressed() {
+        if (!isNavigationActive)
+            super.onBackPressed()
+    }
+
     override fun onStart() {
         super.onStart()
 
