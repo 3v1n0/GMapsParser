@@ -8,6 +8,7 @@
 package me.trevi.navparser.service
 
 import android.os.Build
+import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import kotlinx.coroutines.*
@@ -33,6 +34,8 @@ open class NavigationListener : NotificationListenerService() {
                 checkActiveNotifications()
             else
                 mCurrentNotification = null
+
+            Log.v("Navigation listener enabled: $mEnabled")
         }
 
     protected var notificationsThreshold : Long
@@ -52,6 +55,12 @@ open class NavigationListener : NotificationListenerService() {
         if (BuildConfig.DEBUG) {
             Log.plant(Log.DebugTree())
         }
+
+        if (haveNotificationsAccess()) {
+            Log.d("Notifications access granted to ${this.javaClass.name}!")
+        } else {
+            Log.e("No notification access granted to ${this.javaClass.name}!")
+        }
     }
 
     override fun onListenerConnected() {
@@ -61,11 +70,15 @@ open class NavigationListener : NotificationListenerService() {
     }
 
     private fun checkActiveNotifications() {
-        if (Build.VERSION.SDK_INT < 23)
+        if (Build.VERSION.SDK_INT < 23 || !haveNotificationsAccess())
             return
 
-        Log.d("Checking for active Navigation notifications")
-        this.activeNotifications.forEach { sbn -> onNotificationPosted(sbn) }
+        try {
+            Log.d("Checking for active Navigation notifications")
+            this.activeNotifications.forEach { sbn -> onNotificationPosted(sbn) }
+        } catch (e: Throwable) {
+            Log.e("Failed to check for active notifications: $e")
+        }
     }
 
     private fun isGoogleMapsNotification(sbn: StatusBarNotification?) : Boolean {
@@ -76,6 +89,15 @@ open class NavigationListener : NotificationListenerService() {
             return false
 
         return (sbn.id == 1)
+    }
+
+    fun haveNotificationsAccess() : Boolean {
+        Settings.Secure.getString(
+            this.contentResolver, "enabled_notification_listeners"
+        ).also {
+            Log.v("Checking if ${this::class.qualifiedName} has notification access")
+            return this::class.qualifiedName.toString() in it
+        }
     }
 
     protected open fun onNavigationNotificationAdded(navNotification : NavigationNotification) {
