@@ -161,6 +161,7 @@ private fun getCurrentLocale(cx : Context) : LocaleInfo {
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.N) {
             configuration.locales.get(0)
         } else {
+            @Suppress("DEPRECATION")
             configuration.locale
         },
         configuration.layoutDirection == Configuration.SCREENLAYOUT_LAYOUTDIR_RTL
