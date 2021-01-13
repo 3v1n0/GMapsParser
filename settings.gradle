@@ -15,5 +15,6 @@ pluginManagement {
 
 include ':navparser'
 include ':navparser:activity'
+include ':navparser:websocket'
 include ':app'
 rootProject.name = "GMaps Parser"

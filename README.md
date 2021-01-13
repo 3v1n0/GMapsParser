@@ -24,6 +24,7 @@ For example:
 dependencies {
     // ...
     implementation 'com.github.3v1n0.GMapsParser:navparser:master-SNAPSHOT'
+    implementation 'com.github.3v1n0.GMapsParser:navparser-websocket:master-SNAPSHOT'
     implementation 'com.github.3v1n0.GMapsParser:navparser-activity:master-SNAPSHOT'
     // ...
 }
