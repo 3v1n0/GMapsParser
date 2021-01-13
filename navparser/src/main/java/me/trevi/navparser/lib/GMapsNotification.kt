@@ -35,7 +35,7 @@ enum class ContentViewType {
     BEST,
 }
 
-class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNotification(cx, sbn) {
+internal class GMapsNotification(cx: Context, sbn: StatusBarNotification) : NavigationNotification(cx, sbn) {
 
     init {
         Log.d("Importing $mNotification")
