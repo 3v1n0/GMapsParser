@@ -238,20 +238,18 @@ object AnySerializableValueSerializer : KSerializer<AnySerializableValue> {
         AnySerializableValue(AnyValueSerializer.deserialize(decoder))
 }
 
-typealias SerializableMapType = MutableMap<String, AnySerializableValue>
-@Serializable
-abstract class SerializableMap : SerializableMapType
+typealias SerializableMap = MutableMap<String, AnySerializableValue>
 
 object MapStringAnySerializer : KSerializer<MapStringAny> {
-    override val descriptor : SerialDescriptor = SerializableMap.serializer().descriptor
+    override val descriptor : SerialDescriptor = serializer<SerializableMap>().descriptor
     override fun serialize(encoder: Encoder, value: MapStringAny) {
-        val entries : SerializableMapType = mutableMapOf()
+        val entries : SerializableMap = mutableMapOf()
         value.entries.forEach { entries[it.key] = AnySerializableValue(it.value) }
         encoder.encodeSerializableValue(serializer(), entries)
     }
     override fun deserialize(decoder: Decoder): MapStringAny {
         val map = mutableMapOf<String, Any?>()
-        decoder.decodeSerializableValue(serializer<SerializableMapType>()).forEach {
+        decoder.decodeSerializableValue(serializer<SerializableMap>()).forEach {
             map[it.key] = it.value.value
         }
         return MapStringAny(map)
