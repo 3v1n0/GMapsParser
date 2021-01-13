@@ -72,7 +72,8 @@ open class NavigationWebSocket : NavigationListener() {
                 if (currentNotification != null) {
                     sendNavigationData(currentNotification!!.navigationData, forceComplete = true)
                 } else {
-                    return NavProtoEvent.newError("No navigation in progress")
+                    return NavProtoEvent.newError(NavProtoErrorKind.no_navigation_in_progres,
+                        "No navigation in progress")
                 }
             }
             NavProtoAction.set -> {
@@ -85,7 +86,8 @@ open class NavigationWebSocket : NavigationListener() {
                 return NavProtoEvent(NavProtoAction.get,
                     NavProtoNavigationOptions(notificationsThreshold))
             }
-            else -> return NavProtoEvent.newError("Impossible to handle action ${req.action}")
+            else -> return NavProtoEvent.newError(NavProtoErrorKind.invalid_action,
+                "Impossible to handle action ${req.action}")
         }
         return null
     }
@@ -103,9 +105,10 @@ open class NavigationWebSocket : NavigationListener() {
                 }
             }
         } catch (e: Throwable) {
-            NavProtoEvent.newError("Failed to handle client request ${frame.readText()}: $e")
+            NavProtoEvent.newError(NavProtoErrorKind.invalid_request,
+                "Failed to handle client request ${frame.readText()}: $e")
                 .also {
-                    Log.e("${it.data}")
+                    Log.e((it.data as NavProtoError).message)
                     mConsumer!!.send(it.toTextFrame())
                 }
         }
@@ -123,9 +126,10 @@ open class NavigationWebSocket : NavigationListener() {
             install(Routing) {
                 webSocket("/navigationSocket") {
                     if (mConsumer != null && mConsumer!!.isActive) {
-                        "We've already a client... Refusing new connection".also {
-                            Log.w(it)
-                            outgoing.send(NavProtoEvent.newError(it).toTextFrame())
+                        NavProtoEvent.newError(NavProtoErrorKind.not_authorized,
+                            "We've already a client... Refusing new connection").also {
+                            Log.w((it.data as NavProtoError).message)
+                            outgoing.send(it.toTextFrame())
                         }
                         close(CloseReason(CloseReason.Codes.CANNOT_ACCEPT,
                             "Another Client is already connected"))
@@ -158,6 +162,7 @@ open class NavigationWebSocket : NavigationListener() {
                                 }
                                 else -> {
                                     outgoing.send(NavProtoEvent.newError(
+                                        NavProtoErrorKind.invalid_request,
                                         "Frame $frame not handled").toTextFrame())
                                 }
                             }

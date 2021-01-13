@@ -23,6 +23,14 @@ enum class NavProtoAction {
     none,
 }
 
+enum class NavProtoErrorKind {
+    not_authorized,
+    no_navigation_in_progres,
+    invalid_request,
+    invalid_action,
+    internal,
+}
+
 @Serializable
 sealed class NavigationProtoActionType
 
@@ -47,6 +55,13 @@ data class NavProtoHello(
 @SerialName("message")
 data class NavProtoMessage(
     val message: String
+) : NavigationProtoActionType()
+
+@Serializable
+@SerialName("error")
+data class NavProtoError(
+    val error : NavProtoErrorKind,
+    val message: String = ""
 ) : NavigationProtoActionType()
 
 @Serializable
@@ -77,8 +92,8 @@ data class NavProtoEvent(
     }
 
     companion object {
-        fun newError(message: String) : NavProtoEvent {
-            return NavProtoEvent(NavProtoAction.error, NavProtoMessage(message))
+        fun newError(error: NavProtoErrorKind, message: String = "") : NavProtoEvent {
+            return NavProtoEvent(NavProtoAction.error, NavProtoError(error, message))
         }
 
         fun fromTextFrame(frame: Frame.Text) : NavProtoEvent {
