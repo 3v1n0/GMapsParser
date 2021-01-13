@@ -64,10 +64,11 @@ open class NavigationListener : NotificationListenerService() {
         if (Build.VERSION.SDK_INT < 23)
             return
 
+        Log.d("Checking for active Navigation notifications")
         this.activeNotifications.forEach { sbn -> onNotificationPosted(sbn) }
     }
 
-    private fun isGoogleNotification(sbn: StatusBarNotification?): Boolean {
+    private fun isGoogleMapsNotification(sbn: StatusBarNotification?) : Boolean {
         if (!mEnabled)
             return false
 
@@ -131,12 +132,12 @@ open class NavigationListener : NotificationListenerService() {
     override fun onNotificationPosted(sbn: StatusBarNotification?) {
         Log.v("Got notification from ${sbn?.packageName}")
 
-        if (sbn != null && isGoogleNotification(sbn))
+        if (sbn != null && isGoogleMapsNotification(sbn))
             handleGoogleNotification(sbn)
     }
 
     override fun onNotificationRemoved(sbn: StatusBarNotification?) {
-        if (sbn != null && isGoogleNotification(sbn)) {
+        if (sbn != null && isGoogleMapsNotification(sbn)) {
             Log.d("Notification removed ${sbn}, ${sbn.hashCode()}")
             mNotificationParserCoroutine?.cancel();
 
