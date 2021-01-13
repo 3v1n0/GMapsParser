@@ -269,3 +269,25 @@ object MapStringAnySerializer : KSerializer<MapStringAny> {
 
 @Serializable(with = MapStringAnySerializer::class)
 data class MapStringAny(val entries : Map<String, Any?> = emptyMap())
+
+/* Serializer (only) for Any type when included as member of other classes (untyped)
+ * Can be used in cases such as:
+ *   AnySerializableOnly(val value : @Serializable(with = AnySerializableOnlyValueSerializer::class) Any?)
+ */
+
+@Serializable
+abstract class AnySerializableOnlyValue : Any()
+
+object AnySerializableOnlyValueSerializer : KSerializer<Any?> {
+    override val descriptor : SerialDescriptor = AnySerializableOnlyValue.serializer().descriptor
+    override fun serialize(encoder: Encoder, value: Any?) {
+        if (value != null)
+            encoder.encodeSerializableValue(serializer(value::class.starProjectedType), value)
+        else
+            encoder.encodeSerializableValue(serializer<NoneType?>(), null)
+    }
+    override fun deserialize(decoder: Decoder): Any? {
+        /* We don't care about being able to deserialize for this type */
+        throw NotImplementedError("Deserialization not implemented for Any type")
+    }
+}
