@@ -99,6 +99,17 @@ open class NavigationWebSocket : NavigationListener() {
                     return NavProtoEvent(NavProtoAction.status, NavProtoMessage("ok"))
                 }
             }
+            NavProtoAction.stop -> {
+                if (currentNotification == null)
+                    return NavProtoEvent.newError(NavProtoErrorKind.no_navigation_in_progres,
+                        "No navigation in progress")
+                if (!currentNotification!!.navigationData.canStop)
+                    return NavProtoEvent.newError(NavProtoErrorKind.not_supported,
+                        "Stopping is not supported")
+
+                currentNotification!!.close()
+                return NavProtoEvent(NavProtoAction.status, NavProtoMessage("ok"))
+            }
             else -> return NavProtoEvent.newError(NavProtoErrorKind.invalid_action,
                 "Impossible to handle action ${req.action}")
         }
