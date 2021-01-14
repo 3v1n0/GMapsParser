@@ -43,7 +43,7 @@ open class NavigationListener : NotificationListenerService() {
     protected var notificationsThreshold : Long
         get() = mNotificationsThreshold
         set(value) {
-            mNotificationsThreshold = value
+            mNotificationsThreshold = if (value < 0) NOTIFICATIONS_THRESHOLD else value
             mNotificationParserCoroutine?.cancel()
             checkActiveNotifications()
         }
