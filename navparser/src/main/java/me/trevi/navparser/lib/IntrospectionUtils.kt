@@ -78,4 +78,27 @@ interface Introspectable {
             }
         }
     }
+
+    fun deepDiff(other : Introspectable,
+                 thisValue: Any = this, otherValue: Any = other,
+                 klass: KClass<*> = this::class) : MapStringAny {
+        val diffMap = mutableMapOf<String, Any?>()
+
+        klass.members.forEach { m ->
+            if (m is KProperty && m.visibility == KVisibility.PUBLIC && !m.hasAnnotation<Mutable>()) {
+                (m.returnType.classifier as KClass<*>).also { memberClass ->
+                    val tv = m.getter.call(thisValue)
+                    val ov = m.getter.call(otherValue)
+                    if (tv != ov) {
+                        if (tv != null && ov != null && memberClass.isData)
+                            diffMap[m.name] = deepDiff(other, tv, ov, memberClass)
+                        else
+                            diffMap[m.name] = ov
+                    }
+                }
+            }
+        }
+
+        return MapStringAny(diffMap)
+    }
 }
