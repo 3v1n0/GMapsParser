@@ -28,6 +28,7 @@ open class NavigationWebSocket : NavigationListener() {
     lateinit var mServer : NettyApplicationEngine
     private var mPrevNavData = NavigationData()
     private var mConsumer : DefaultWebSocketSession? = null /* FIXME: Support multiple consumers */
+    private var mUseBinary : Boolean = false
     private var mSocketPorts = SOCKET_PORTS
 
     protected var socketPorts : IntArray
@@ -84,12 +85,13 @@ open class NavigationWebSocket : NavigationListener() {
             NavProtoAction.set -> {
                 (req.data as NavProtoNavigationOptions).also {
                     notificationsThreshold = it.notificationThreshold
+                    mUseBinary = it.useBinary
                     return NavProtoEvent(NavProtoAction.status, NavProtoMessage("ok"))
                 }
             }
             NavProtoAction.get -> {
                 return NavProtoEvent(NavProtoAction.get,
-                    NavProtoNavigationOptions(notificationsThreshold))
+                    NavProtoNavigationOptions(notificationsThreshold, mUseBinary))
             }
             else -> return NavProtoEvent.newError(NavProtoErrorKind.invalid_action,
                 "Impossible to handle action ${req.action}")
@@ -97,21 +99,36 @@ open class NavigationWebSocket : NavigationListener() {
         return null
     }
 
+    private suspend fun handleNavProtoEvent(req: NavProtoEvent) {
+        handleRequest(req).also { reply ->
+            if (reply != null) {
+                if (reply.action == NavProtoAction.error) {
+                    Log.e("Error handling client request '$req': ${reply.data}")
+                }
+                sendNavigationEventSuspended(reply)
+            }
+        }
+    }
+
     private suspend fun handleTextFrame(frame : Frame.Text) {
         try {
             NavProtoEvent.fromTextFrame(frame).also { req ->
-                handleRequest(req).also { reply ->
-                    if (reply != null) {
-                        if (reply.action == NavProtoAction.error) {
-                            Log.e("Error handling client request '$req': ${reply.data}")
-                        }
-                        sendNavigationEventSuspended(reply)
-                    }
-                }
+                handleNavProtoEvent(req)
             }
         } catch (e: Throwable) {
             sendNavigationEventSuspended(NavProtoEvent.newError(NavProtoErrorKind.invalid_request,
                 "Failed to handle client request ${frame.readText()}: $e"))
+        }
+    }
+
+    private suspend fun handleBinaryFrame(frame : Frame.Binary) {
+        try {
+            NavProtoEvent.fromBinaryFrame(frame).also { req ->
+                handleNavProtoEvent(req)
+            }
+        } catch (e: Throwable) {
+            sendNavigationEventSuspended(NavProtoEvent.newError(NavProtoErrorKind.invalid_request,
+                "Failed to handle client request ${frame.data}: $e"))
         }
     }
 
@@ -164,6 +181,9 @@ open class NavigationWebSocket : NavigationListener() {
                             when (frame) {
                                 is Frame.Text -> {
                                     handleTextFrame(frame)
+                                }
+                                is Frame.Binary -> {
+                                    handleBinaryFrame(frame)
                                 }
                                 is Frame.Close -> {
                                     mConsumer = null
@@ -239,7 +259,7 @@ open class NavigationWebSocket : NavigationListener() {
         }
 
         if (client != null && client.isActive) {
-            client.send(navigationEvent.toTextFrame())
+            client.send(if (mUseBinary) navigationEvent.toBinaryFrame() else navigationEvent.toTextFrame())
             return true
         }
 
