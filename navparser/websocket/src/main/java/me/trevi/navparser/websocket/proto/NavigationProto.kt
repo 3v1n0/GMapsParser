@@ -90,7 +90,14 @@ data class NavProtoEvent(
     val data: NavigationProtoActionType = NavProtoNullData,
 ) {
     fun toTextFrame() : Frame.Text {
-        return Frame.Text(Json.encodeToString(this))
+        return Frame.Text(Json{ encodeDefaults = encodeDefaults() }.encodeToString(this))
+    }
+
+    private fun encodeDefaults() : Boolean {
+        return when (data) {
+            is NavProtoNavigationUpdate -> true
+            else -> false
+        }
     }
 
     companion object {
