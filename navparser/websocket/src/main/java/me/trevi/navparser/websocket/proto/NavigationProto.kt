@@ -1,10 +1,8 @@
 package me.trevi.navparser.websocket.proto
 
 import io.ktor.http.cio.websocket.*
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
+import kotlinx.serialization.*
+import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json
 import me.trevi.navparser.lib.MapStringAnySerializableOnly
 import me.trevi.navparser.lib.NavigationData
@@ -81,7 +79,8 @@ data class NavProtoNavigationUpdate(
 @Serializable
 @SerialName("options")
 data class NavProtoNavigationOptions(
-    val notificationThreshold : Long
+    val notificationThreshold : Long = 0,
+    val useBinary : Boolean = false,
 ) : NavigationProtoActionType()
 
 @Serializable
@@ -91,6 +90,10 @@ data class NavProtoEvent(
 ) {
     fun toTextFrame() : Frame.Text {
         return Frame.Text(Json{ encodeDefaults = encodeDefaults() }.encodeToString(this))
+    }
+
+    fun toBinaryFrame() : Frame.Binary {
+        return Frame.Binary(true, Cbor{ encodeDefaults = encodeDefaults() }.encodeToByteArray(this))
     }
 
     private fun encodeDefaults() : Boolean {
@@ -107,6 +110,10 @@ data class NavProtoEvent(
 
         fun fromTextFrame(frame: Frame.Text) : NavProtoEvent {
             return Json.decodeFromString(frame.readText())
+        }
+
+        fun fromBinaryFrame(frame: Frame.Binary) : NavProtoEvent {
+            return Cbor.decodeFromByteArray(frame.readBytes())
         }
     }
 }
