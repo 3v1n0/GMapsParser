@@ -30,6 +30,17 @@ abstract class MutableContent {
 }
 
 interface Introspectable {
+    private fun serializableMap(map: Map<String, Any?>, returnKClass: KClass<*>) : AbstractMapStringAnySerializable {
+        return try {
+            returnKClass.constructors.find {
+                return@find (it.parameters.size == 1 &&
+                        map::class.isSubclassOf(it.parameters[0].type.classifier as KClass<*>))
+            }!!.call(map) as AbstractMapStringAnySerializable
+        } catch (e: Throwable) {
+            throw NoClassDefFoundError("Impossible to find required constructor for $returnKClass")
+        }
+    }
+
     fun asMap() : MapStringAny {
         val map = mutableMapOf<String, Any?>()
 
@@ -41,7 +52,7 @@ interface Introspectable {
         return MapStringAny(map)
     }
 
-    fun diffMap(other: NavigationData) : MapStringAny {
+    fun diffMap(other: Introspectable, returnKClass: KClass<*>) : AbstractMapStringAnySerializable {
         val diff = mutableMapOf<String, Any?>()
 
         this::class.members.forEach { m ->
@@ -55,7 +66,7 @@ interface Introspectable {
             }
         }
 
-        return MapStringAny(diff)
+        return serializableMap(diff, returnKClass)
     }
 
     fun debugIntrospect(value: Any = this, klass: KClass<*> = this::class, pad : Int = 0) {
@@ -99,14 +110,7 @@ interface Introspectable {
             }
         }
 
-        return try {
-            returnKClass.constructors.find {
-                return@find (it.parameters.size == 1 &&
-                        diffMap::class.isSubclassOf(it.parameters[0].type.classifier as KClass<*>))
-            }!!.call(diffMap) as AbstractMapStringAnySerializable
-        } catch (e: Throwable) {
-            throw NoClassDefFoundError("Impossible to find required constructor for $returnKClass")
-        }
+        return serializableMap(diffMap, returnKClass)
     }
 
     fun deepDiff(other : Introspectable) : MapStringAny {
@@ -116,4 +120,8 @@ interface Introspectable {
 
 inline fun <reified T : AbstractMapStringAnySerializable> Introspectable.deepDiff(other : Introspectable) : T {
     return deepDiff(other, T::class) as T
+}
+
+inline fun <reified T : AbstractMapStringAnySerializable> Introspectable.diffMap(other : Introspectable) : T {
+    return diffMap(other, T::class) as T
 }
