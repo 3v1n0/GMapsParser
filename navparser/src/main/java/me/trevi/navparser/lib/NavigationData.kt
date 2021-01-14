@@ -88,6 +88,21 @@ data class NavigationTimestamp(
     }
 }
 
+enum class NavigationMode {
+    DRIVING,
+    BICYCLING,
+    TWO_WHEELER,
+    WALKING,
+}
+
+enum class NavigationAvoidElement {
+    TOLLS,
+    HIGHWAYS,
+    FERRIES,
+    ;
+}
+typealias NavigationAvoid = Set<NavigationAvoidElement>
+
 typealias NavigationDataMap = MapStringAny
 typealias NavigationDataDiff = AbstractMapStringAnySerializable
 

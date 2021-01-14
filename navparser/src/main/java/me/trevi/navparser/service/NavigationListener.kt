@@ -7,15 +7,15 @@
 
 package me.trevi.navparser.service
 
+import android.content.Intent
+import android.net.Uri
 import android.os.Build
 import android.provider.Settings
 import android.service.notification.NotificationListenerService
 import android.service.notification.StatusBarNotification
 import kotlinx.coroutines.*
 import me.trevi.navparser.BuildConfig
-import me.trevi.navparser.lib.GMAPS_PACKAGE
-import me.trevi.navparser.lib.GMapsNotification
-import me.trevi.navparser.lib.NavigationNotification
+import me.trevi.navparser.lib.*
 import timber.log.Timber as Log
 
 private const val NOTIFICATIONS_THRESHOLD : Long = 500 // Ignore notifications coming earlier, in ms
@@ -168,5 +168,40 @@ open class NavigationListener : NotificationListenerService() {
             onNavigationNotificationRemoved(mCurrentNotification!!)
             mCurrentNotification = null;
         }
+    }
+
+    fun startNavigation(destination: String,
+                        mode: NavigationMode = NavigationMode.DRIVING,
+                        avoid: NavigationAvoid = emptySet()) {
+        val builder = Uri.Builder()
+        builder.scheme("google.navigation")
+            .appendQueryParameter("q", destination)
+
+        builder.appendQueryParameter("mode",
+            when(mode) {
+                NavigationMode.DRIVING -> "d"
+                NavigationMode.BICYCLING -> "b"
+                NavigationMode.TWO_WHEELER -> "l"
+                NavigationMode.WALKING -> "w"
+        })
+
+        if (avoid.isNotEmpty()) {
+            var avoidString = ""
+            avoid.forEach {
+                avoidString += when (it) {
+                    NavigationAvoidElement.HIGHWAYS -> 'h'
+                    NavigationAvoidElement.TOLLS -> 't'
+                    NavigationAvoidElement.FERRIES -> 'f'
+                }
+            }
+            builder.appendQueryParameter("avoid", avoidString)
+        }
+
+        val navigationUri = builder.build().toString()
+        Log.i("Navigating to URI: $navigationUri")
+        val mapIntent = Intent(Intent.ACTION_VIEW, Uri.parse(navigationUri))
+        mapIntent.setPackage(GMAPS_PACKAGE)
+        mapIntent.flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        startActivity(mapIntent)
     }
 }
