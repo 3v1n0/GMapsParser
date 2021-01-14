@@ -93,6 +93,12 @@ open class NavigationWebSocket : NavigationListener() {
                 return NavProtoEvent(NavProtoAction.get,
                     NavProtoNavigationOptions(notificationsThreshold, mUseBinary))
             }
+            NavProtoAction.start -> {
+                (req.data as NavProtoNavigationStart).also {
+                    startNavigation(it.destination, it.mode, it.avoid)
+                    return NavProtoEvent(NavProtoAction.status, NavProtoMessage("ok"))
+                }
+            }
             else -> return NavProtoEvent.newError(NavProtoErrorKind.invalid_action,
                 "Impossible to handle action ${req.action}")
         }

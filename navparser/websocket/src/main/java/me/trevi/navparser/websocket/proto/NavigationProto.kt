@@ -4,8 +4,7 @@ import io.ktor.http.cio.websocket.*
 import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json
-import me.trevi.navparser.lib.MapStringAnySerializableOnly
-import me.trevi.navparser.lib.NavigationData
+import me.trevi.navparser.lib.*
 
 const val PROTO_VERSION = "1.0"
 
@@ -61,6 +60,14 @@ data class NavProtoMessage(
 data class NavProtoError(
     val error : NavProtoErrorKind,
     val message: String = ""
+) : NavigationProtoActionType()
+
+@Serializable
+@SerialName("navigationStart")
+data class NavProtoNavigationStart(
+    val destination: String,
+    val mode: NavigationMode = NavigationMode.DRIVING,
+    val avoid: NavigationAvoid = emptySet(),
 ) : NavigationProtoActionType()
 
 @Serializable
