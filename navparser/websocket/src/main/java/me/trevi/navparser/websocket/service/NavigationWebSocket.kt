@@ -14,6 +14,7 @@ import kotlinx.serialization.*
 import me.trevi.navparser.BuildConfig
 import me.trevi.navparser.lib.NavigationData
 import me.trevi.navparser.lib.NavigationNotification
+import me.trevi.navparser.lib.deepDiff
 import me.trevi.navparser.service.NavigationListener
 import me.trevi.navparser.websocket.*
 import me.trevi.navparser.websocket.proto.*
@@ -267,8 +268,8 @@ open class NavigationWebSocket : NavigationListener() {
         } else {
             GlobalScope.launch(Dispatchers.Main) {
                 GlobalScope.async(Dispatchers.Default) {
-                    val diff = mPrevNavData.diff(navigationData).entries
-                    return@async if (diff.entries.isNotEmpty()) UntypedNavigationDataDiff(diff) else null
+                    val diff = mPrevNavData.deepDiff<UntypedNavigationDataDiff>(navigationData)
+                    return@async if (diff.entries.isNotEmpty()) diff else null
                 }.await().also {
                     if (it != null) {
                         sendNavigationEventSuspended(
