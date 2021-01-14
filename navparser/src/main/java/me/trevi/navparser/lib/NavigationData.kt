@@ -89,6 +89,7 @@ data class NavigationTimestamp(
 }
 
 typealias NavigationDataMap = MapStringAny
+typealias NavigationDataDiff = AbstractMapStringAnySerializable
 
 @Parcelize @Serializable
 data class NavigationData(

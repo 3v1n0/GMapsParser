@@ -283,8 +283,13 @@ object MapStringAnySerializer : KSerializer<MapStringAny> {
     }
 }
 
+sealed class AbstractMapStringAnySerializable {
+    abstract val entries : Map<String, Any?>
+}
+
 @Serializable(with = MapStringAnySerializer::class)
-data class MapStringAny(val entries : Map<String, Any?> = emptyMap())
+data class MapStringAny(override val entries: Map<String, Any?> = emptyMap()) :
+    AbstractMapStringAnySerializable()
 
 /* Serializer (only) for Any type when included as member of other classes (untyped)
  * Can be used in cases such as:
@@ -342,4 +347,5 @@ object MapStringAnySerializableOnlySerializer : KSerializer<MapStringAnySerializ
 }
 
 @Serializable(with = MapStringAnySerializableOnlySerializer::class)
-data class MapStringAnySerializableOnly(val entries : Map<String, Any?> = emptyMap())
+data class MapStringAnySerializableOnly(override val entries: Map<String, Any?> = emptyMap()) :
+    AbstractMapStringAnySerializable()

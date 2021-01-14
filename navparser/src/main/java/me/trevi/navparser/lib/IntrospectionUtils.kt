@@ -5,7 +5,6 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty
 import kotlin.reflect.KVisibility
 import kotlin.reflect.full.*
-import kotlin.reflect.typeOf
 
 @Target(AnnotationTarget.PROPERTY)
 annotation class Mutable
@@ -80,8 +79,9 @@ interface Introspectable {
     }
 
     fun deepDiff(other : Introspectable,
+                 returnKClass: KClass<*>,
                  thisValue: Any = this, otherValue: Any = other,
-                 klass: KClass<*> = this::class) : MapStringAny {
+                 klass: KClass<*> = this::class) : AbstractMapStringAnySerializable {
         val diffMap = mutableMapOf<String, Any?>()
 
         klass.members.forEach { m ->
@@ -91,7 +91,7 @@ interface Introspectable {
                     val ov = m.getter.call(otherValue)
                     if (tv != ov) {
                         if (tv != null && ov != null && memberClass.isData)
-                            diffMap[m.name] = deepDiff(other, tv, ov, memberClass)
+                            diffMap[m.name] = deepDiff(other, returnKClass, tv, ov, memberClass)
                         else
                             diffMap[m.name] = ov
                     }
@@ -99,6 +99,21 @@ interface Introspectable {
             }
         }
 
-        return MapStringAny(diffMap)
+        return try {
+            returnKClass.constructors.find {
+                return@find (it.parameters.size == 1 &&
+                        diffMap::class.isSubclassOf(it.parameters[0].type.classifier as KClass<*>))
+            }!!.call(diffMap) as AbstractMapStringAnySerializable
+        } catch (e: Throwable) {
+            throw NoClassDefFoundError("Impossible to find required constructor for $returnKClass")
+        }
     }
+
+    fun deepDiff(other : Introspectable) : MapStringAny {
+        return deepDiff<MapStringAny>(other)
+    }
+}
+
+inline fun <reified T : AbstractMapStringAnySerializable> Introspectable.deepDiff(other : Introspectable) : T {
+    return deepDiff(other, T::class) as T
 }
