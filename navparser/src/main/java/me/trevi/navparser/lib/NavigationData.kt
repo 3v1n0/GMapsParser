@@ -20,6 +20,7 @@ import java.time.*
 import java.util.*
 import kotlin.reflect.KProperty
 import kotlin.reflect.KVisibility
+import kotlin.reflect.full.hasAnnotation
 
 enum class DistanceUnit {
     KM,
@@ -29,8 +30,28 @@ enum class DistanceUnit {
     INVALID,
 }
 
-@Target(AnnotationTarget.VALUE_PARAMETER)
+@Target(AnnotationTarget.PROPERTY)
 annotation class Mutable
+
+abstract class MutableContent {
+    override fun equals(other: Any?): Boolean {
+        if (other == null || other::class != this::class)
+            return false
+
+        this::class.members.forEach { m ->
+            if (m is KProperty && !m.hasAnnotation<Mutable>()) {
+                if (m.getter.call(this) != m.getter.call(other))
+                    return false
+            }
+        }
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return javaClass.hashCode()
+    }
+}
 
 @Parcelize @Serializable
 data class NavigationDistance(
@@ -87,14 +108,9 @@ data class NavigationIcon(
 data class NavigationTimestamp(
     @Mutable
     var timestamp : Long = 0,
-) : Parcelable {
+) : Parcelable, MutableContent() {
     override fun equals(other: Any?): Boolean {
-        /* We don't care about changes on the timestamp, so we always return true if same type */
-        return other is NavigationTimestamp
-    }
-
-    override fun hashCode(): Int {
-        return timestamp.hashCode()
+        return super.equals(other)
     }
 }
 
@@ -111,12 +127,16 @@ data class NavigationData(
     var finalDirection : String? = null,
     @Mutable
     var postTime : NavigationTimestamp = NavigationTimestamp(),
-) : Parcelable {
+) : Parcelable, MutableContent() {
     fun isValid(): Boolean {
         return isRerouting ||
                 (nextDirection.localeString != null &&
                         remainingDistance.localeString != null &&
                         eta.localeString != null)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        return super.equals(other)
     }
 
     fun asMap() : NavigationDataMap {
@@ -135,7 +155,7 @@ data class NavigationData(
 
         this::class.members.forEach { m ->
             if (m is KProperty && m.visibility == KVisibility.PUBLIC && m.isFinal &&
-                    m.annotations.find { it is Mutable } == null) {
+                    !m.hasAnnotation<Mutable>()) {
                 m.getter.call(other).also {
                     if (it != m.getter.call(this))
                         diff[m.name] = it
