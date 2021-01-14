@@ -290,4 +290,8 @@ open class NavigationWebSocket : NavigationListener() {
 
         sendNavigationData(navNotification.navigationData)
     }
+
+    override fun onNavigationNotificationRemoved(navNotification: NavigationNotification) {
+        sendNavigationEvent(NavProtoEvent(NavProtoAction.stop, NavProtoMessage("Navigation has been stopped")))
+    }
 }
