@@ -128,6 +128,21 @@ data class AnyValueSurrogate(
 @Serializable
 object NoneType
 
+fun getSerializerForType(type: KType) : KSerializer<Any?> {
+    return try {
+        serializer(type)
+    } catch (e: SerializationException) {
+        @Suppress("UNCHECKED_CAST")
+        when (type) {
+            LocalDate::class.starProjectedType -> LocalDateSerializer as KSerializer<Any?>
+            LocalTime::class.starProjectedType -> LocalTimeSerializer as KSerializer<Any?>
+            Duration::class.starProjectedType -> DurationSerializer as KSerializer<Any?>
+            Bitmap::class.starProjectedType -> BitmapSerializer as KSerializer<Any?>
+            else -> throw(e)
+        }
+    }
+}
+
 object AnyValueSerializer : KSerializer<Any?> {
     override val descriptor : SerialDescriptor = AnyValueSurrogate.serializer().descriptor
 
@@ -135,7 +150,7 @@ object AnyValueSerializer : KSerializer<Any?> {
         if (value != null) {
             val valueClass = value::class
             val valueType = valueClass.starProjectedType
-            val valueSerializer = serializer(valueType)
+            val valueSerializer = getSerializerForType(valueType)
 
             if (encoder is JsonEncoder && isTypePrimitive(valueType)) {
                 encoder.encodeJsonElement(Json.encodeToJsonElement(valueSerializer, value))
@@ -283,7 +298,7 @@ object AnySerializableOnlyValueSerializer : KSerializer<Any?> {
     override val descriptor : SerialDescriptor = AnySerializableOnlyValue.serializer().descriptor
     override fun serialize(encoder: Encoder, value: Any?) {
         if (value != null)
-            encoder.encodeSerializableValue(serializer(value::class.starProjectedType), value)
+            encoder.encodeSerializableValue(getSerializerForType(value::class.starProjectedType), value)
         else
             encoder.encodeSerializableValue(serializer<NoneType?>(), null)
     }
@@ -306,7 +321,7 @@ object MapStringAnyValueSerializer : KSerializer<Map<String, Any?>> {
         value.forEach { (k, v) ->
             composite.encodeSerializableElement(descriptor, index++, serializer(), k)
             if (v != null) {
-                composite.encodeSerializableElement(descriptor, index++, serializer(v::class.starProjectedType), v)
+                composite.encodeSerializableElement(descriptor, index++, getSerializerForType(v::class.starProjectedType), v)
             } else {
                 composite.encodeSerializableElement(descriptor, index++, serializer<NoneType?>(), null)
             }
