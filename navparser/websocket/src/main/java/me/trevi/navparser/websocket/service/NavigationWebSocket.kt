@@ -221,6 +221,7 @@ open class NavigationWebSocket : NavigationListener() {
                     } finally {
                         Log.d("Connection with peer $mConsumer closed")
                         mConsumer = null
+                        mUseBinary = false
                         enabled = false
                     }
                 }
