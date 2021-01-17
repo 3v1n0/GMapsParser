@@ -80,18 +80,19 @@ object DurationSerializer : KSerializer<Duration> {
 @Serializable
 data class BitmapSerialDescriptor(
     val width : Int,
-    val height : Int,
-    val hashCode : Int)
+    val height : Int)
 {
     var base64 : String? = null
+    var hashCode : Int = 0
     @ByteString
     var byteArray : ByteArray? = null
 
     constructor(bitmap : Bitmap, useBase64 : Boolean)
-            : this(bitmap.width, bitmap.height, bitmap.hashCode()) {
+            : this(bitmap.width, bitmap.height) {
         val stream = ByteArrayOutputStream()
         bitmap.compress(Bitmap.CompressFormat.PNG, 90, stream)
         stream.toByteArray().also {
+            hashCode = it.contentHashCode()
             if (useBase64)
                 base64 = Base64.encodeToString(it, Base64.DEFAULT)
             else
