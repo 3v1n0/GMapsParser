@@ -43,10 +43,12 @@ data class NavProtoHello(
     val message: String,
 ) : NavigationProtoActionType()
 {
-    var version: String = ""
+    var protoVersion: String = ""
+    var appVersion: String = ""
 
     init {
-        version = PROTO_VERSION
+        appVersion = BuildConfig.LIBRARY_VERSION
+        protoVersion = PROTO_VERSION
     }
 }
 
