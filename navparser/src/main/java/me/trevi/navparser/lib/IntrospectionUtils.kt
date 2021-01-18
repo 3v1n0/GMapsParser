@@ -24,6 +24,20 @@ abstract class MutableContent {
         return true
     }
 
+    fun mutableEquals(other: Any?): Boolean {
+        if (other == null || other::class != this::class)
+            return false
+
+        this::class.members.forEach { m ->
+            if (m is KProperty && m.hasAnnotation<Mutable>()) {
+                if (m.getter.call(this) != m.getter.call(other))
+                    return false
+            }
+        }
+
+        return true
+    }
+
     override fun hashCode(): Int {
         return javaClass.hashCode()
     }
@@ -54,17 +68,29 @@ interface Introspectable {
 
     fun diffMap(other: Introspectable, returnKClass: KClass<*>) : AbstractMapStringAnySerializable {
         val diff = mutableMapOf<String, Any?>()
+        val mutableDiff = mutableMapOf<String, Any?>()
 
         this::class.members.forEach { m ->
-            if (m is KProperty && m.visibility == KVisibility.PUBLIC && m.isFinal &&
-                !m.hasAnnotation<Mutable>()
-            ) {
-                m.getter.call(other).also {
-                    if (it != m.getter.call(this))
-                        diff[m.name] = it
+            if (m is KProperty && m.visibility == KVisibility.PUBLIC && m.isFinal) {
+                val destMap = if (m.hasAnnotation<Mutable>()) mutableDiff else diff
+                m.getter.call(other).also { otherValue ->
+                    val thisValue = m.getter.call(this)
+                    val equals = if (thisValue != null && m.hasAnnotation<Mutable>() &&
+                        (m.returnType.classifier as KClass<*>).isSubclassOf(MutableContent::class)) {
+                        (thisValue as MutableContent).mutableEquals(otherValue)
+                    } else {
+                        thisValue == otherValue
+                    }
+
+                    if (!equals) {
+                        destMap[m.name] = otherValue
+                    }
                 }
             }
         }
+
+        if (diff.isNotEmpty())
+            diff.putAll(mutableDiff)
 
         return serializableMap(diff, returnKClass)
     }
@@ -76,7 +102,7 @@ interface Introspectable {
 
         Log.d("${padStr}Looking for members of $klass")
 
-        for (m in klass.members) {
+        klass.members.forEach { m ->
             if (m is KProperty && m.visibility == KVisibility.PUBLIC) {
                 val memberValue = m.getter.call(value)
 
@@ -94,20 +120,34 @@ interface Introspectable {
                  thisValue: Any = this, otherValue: Any = other,
                  klass: KClass<*> = this::class) : AbstractMapStringAnySerializable {
         val diffMap = mutableMapOf<String, Any?>()
+        val mutableDiffMap = mutableMapOf<String, Any?>()
+        val isRoot = thisValue == this && klass == this::class
 
         klass.members.forEach { m ->
-            if (m is KProperty && m.visibility == KVisibility.PUBLIC && !m.hasAnnotation<Mutable>()) {
+            if (m is KProperty && m.visibility == KVisibility.PUBLIC) {
                 (m.returnType.classifier as KClass<*>).also { memberClass ->
                     val tv = m.getter.call(thisValue)
                     val ov = m.getter.call(otherValue)
-                    if (tv != ov) {
+                    val destMap = if (isRoot && m.hasAnnotation<Mutable>()) mutableDiffMap else diffMap
+                    val equals = if (tv != null && m.hasAnnotation<Mutable>() &&
+                            memberClass.isSubclassOf(MutableContent::class)) {
+                        (tv as MutableContent).mutableEquals(ov)
+                    } else {
+                        tv == ov
+                    }
+
+                    if (!equals) {
                         if (tv != null && ov != null && memberClass.isData)
-                            diffMap[m.name] = deepDiff(other, returnKClass, tv, ov, memberClass)
+                            destMap[m.name] = deepDiff(other, returnKClass, tv, ov, memberClass)
                         else
-                            diffMap[m.name] = ov
+                            destMap[m.name] = ov
                     }
                 }
             }
+        }
+
+        if (isRoot && diffMap.isNotEmpty()) {
+            diffMap.putAll(mutableDiffMap)
         }
 
         return serializableMap(diffMap, returnKClass)
