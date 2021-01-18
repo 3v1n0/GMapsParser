@@ -177,7 +177,10 @@ open class NavigationWebSocket : NavigationListener() {
                         sendNavigationEventSuspended(
                             NavProtoEvent(
                                 NavProtoAction.hello,
-                                NavProtoHello("Hello, ready to navigate you!")
+                                NavProtoHello("Hello, ready to navigate you!",
+                                    packageName,
+                                    applicationContext.packageManager.getPackageInfo(packageName, 0).versionName,
+                                )
                             )
                         )
 

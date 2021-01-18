@@ -5,6 +5,7 @@ import kotlinx.serialization.*
 import kotlinx.serialization.cbor.Cbor
 import kotlinx.serialization.json.Json
 import me.trevi.navparser.lib.*
+import me.trevi.navparser.websocket.BuildConfig
 
 const val PROTO_VERSION = "1.0"
 
@@ -41,13 +42,18 @@ object NavProtoNullData : NavigationProtoActionType()
 @SerialName("hello")
 data class NavProtoHello(
     val message: String,
+    var appName: String = "",
+    var appVersion: String = "",
 ) : NavigationProtoActionType()
 {
     var protoVersion: String = ""
-    var appVersion: String = ""
 
     init {
-        appVersion = BuildConfig.LIBRARY_VERSION
+        if (appName.isEmpty())
+            appName = BuildConfig.LIBRARY_PACKAGE_NAME
+        if (appVersion.isEmpty())
+            appVersion = BuildConfig.LIBRARY_VERSION
+
         protoVersion = PROTO_VERSION
     }
 }
