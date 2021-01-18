@@ -115,6 +115,7 @@ data class NavigationData(
     var remainingDistance: NavigationDistance = NavigationDistance(),
     var eta: NavigationTime = NavigationTime(),
     var finalDirection : String? = null,
+    var dataSource: String? = null,
     @Mutable
     var postTime : NavigationTimestamp = NavigationTimestamp(),
 ) : Parcelable, Introspectable, MutableContent() {

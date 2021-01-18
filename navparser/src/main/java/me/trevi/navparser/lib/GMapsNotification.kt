@@ -40,6 +40,8 @@ internal class GMapsNotification(cx: Context, sbn: StatusBarNotification) : Navi
     init {
         Log.d("Importing $mNotification")
 
+        navigationData.dataSource = "Google Maps";
+
         val normalContent = getContentView(ContentViewType.NORMAL)
         if (normalContent != null)
             parseRemoteView(getRemoteViewGroup(normalContent))
