@@ -5,10 +5,6 @@ plugins {
     id 'kotlinx-serialization'
 }
 
-ext {
-    versionName = "1.0";
-}
-
 android {
     compileSdkVersion 30
     buildToolsVersion "30.0.2"
@@ -17,7 +13,7 @@ android {
         minSdkVersion 21
         targetSdkVersion 30
         versionCode 1
-        versionName "$versionName"
+        versionName "$gmaps_parser_version"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
@@ -25,13 +21,13 @@ android {
 
     buildTypes {
         release {
-            buildConfigField "String", "LIBRARY_VERSION", "\"$versionName\""
+            buildConfigField "String", "LIBRARY_VERSION", "\"$gmaps_parser_version\""
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
 
         debug {
-            buildConfigField "String", "LIBRARY_VERSION", "\"$versionName\""
+            buildConfigField "String", "LIBRARY_VERSION", "\"$gmaps_parser_version\""
         }
     }
     compileOptions {
