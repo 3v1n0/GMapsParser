@@ -77,7 +77,7 @@ interface Introspectable {
         Log.d("${padStr}Looking for members of $klass")
 
         for (m in klass.members) {
-            if (m is KProperty && m.visibility == KVisibility.PUBLIC && m.hasAnnotation<Mutable>()) {
+            if (m is KProperty && m.visibility == KVisibility.PUBLIC) {
                 val memberValue = m.getter.call(value)
 
                 Log.d("${padStr}${m.name}: $memberValue (${m.returnType})")
