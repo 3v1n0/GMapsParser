@@ -8,7 +8,7 @@ plugins {
 }
 
 ext {
-    kotlin_version = "1.4.21"
+    kotlin_version = "1.4.31"
     kotlix_serialization_version = "1.0.1"
     kotlix_coroutines_version = "1.4.1"
     gmaps_parser_version = "0.2.0"
