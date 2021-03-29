@@ -9,8 +9,8 @@ plugins {
 
 ext {
     kotlin_version = "1.4.31"
-    kotlix_serialization_version = "1.0.1"
-    kotlix_coroutines_version = "1.4.1"
+    kotlix_serialization_version = "1.1.0"
+    kotlix_coroutines_version = "1.4.2"
     gmaps_parser_version = "0.2.0"
     gmaps_parser_groupId = 'com.github.3v1n0.navparser'
 }
