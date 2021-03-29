@@ -102,13 +102,13 @@ open class NavigationListener : NotificationListenerService() {
         }
     }
 
-    protected open fun onNavigationNotificationAdded(navNotification : NavigationNotification) {
+    protected open fun onNavigationNotificationAdded(navNotification: NavigationNotification) {
     }
 
-    protected open fun onNavigationNotificationUpdated(navNotification : NavigationNotification) {
+    protected open fun onNavigationNotificationUpdated(navNotification: NavigationNotification) {
     }
 
-    protected open fun onNavigationNotificationRemoved(navNotification : NavigationNotification) {
+    protected open fun onNavigationNotificationRemoved(navNotification: NavigationNotification) {
     }
 
     private fun handleGoogleNotification(sbn: StatusBarNotification) {
