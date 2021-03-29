@@ -165,7 +165,10 @@ open class NavigationListener : NotificationListenerService() {
             Log.d("Notification removed ${sbn}, ${sbn.hashCode()}")
             mNotificationParserCoroutine?.cancel();
 
-            onNavigationNotificationRemoved(mCurrentNotification!!)
+            onNavigationNotificationRemoved(
+                if (mCurrentNotification != null) mCurrentNotification!!
+                else NavigationNotification(applicationContext, sbn))
+
             mCurrentNotification = null;
         }
     }
