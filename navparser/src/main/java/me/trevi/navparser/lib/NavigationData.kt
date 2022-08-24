@@ -24,6 +24,7 @@ enum class DistanceUnit {
     M,
     FT,
     MI,
+    YD,
     INVALID,
 }
 
@@ -161,6 +162,8 @@ fun unitStringToDistanceUnit(unit: String) : DistanceUnit {
         return DistanceUnit.MI
     } else if (unit == "ft") {
         return DistanceUnit.FT
+    } else if (unit == "yd") {
+        return DistanceUnit.YD
     }
 
     throw(UnknownFormatConversionException("Impossible to parse a distance unit ${unit}"))
